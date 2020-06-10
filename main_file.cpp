@@ -116,8 +116,8 @@ void initOpenGLProgram(GLFWwindow *window) {
     glfwSetKeyCallback(window, keyCallback);
 
     sp = new ShaderProgram("shaders/v_simplest.glsl", NULL, "shaders/f_simplest.glsl");
-    tex0 = readTexture("src/texture/metal.png");
-    tex1 = readTexture("src/texture/metal_spec.png");
+    tex0 = readTexture("src/textures/metal.png");
+    tex1 = readTexture("src/textures/metal_spec.png");
 }
 
 
