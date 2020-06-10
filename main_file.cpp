@@ -30,8 +30,8 @@ Place, Fifth Floor, Boston, MA  02110 - 1301  USA
 #include "constants.h"
 #include "lodepng.h"
 #include "shaders/shaderprogram.h"
-#include "scr/models/myCube.h"
-#include "scr/models/myTeapot.h"
+#include "src/models/myCube.h"
+#include "src/models/myTeapot.h"
 
 float speed_x = 0;
 float speed_y = 0;
@@ -115,9 +115,9 @@ void initOpenGLProgram(GLFWwindow *window) {
     glfwSetWindowSizeCallback(window, windowResizeCallback);
     glfwSetKeyCallback(window, keyCallback);
 
-    sp = new ShaderProgram("v_simplest.glsl", NULL, "f_simplest.glsl");
-    tex0 = readTexture("metal.png");
-    tex1 = readTexture("metal_spec.png");
+    sp = new ShaderProgram("shaders/v_simplest.glsl", NULL, "shaders/f_simplest.glsl");
+    tex0 = readTexture("src/texture/metal.png");
+    tex1 = readTexture("src/texture/metal_spec.png");
 }
 
 
