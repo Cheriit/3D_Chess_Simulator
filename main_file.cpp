@@ -29,9 +29,9 @@ Place, Fifth Floor, Boston, MA  02110 - 1301  USA
 #include <stdio.h>
 #include "constants.h"
 #include "lodepng.h"
-#include "shaderprogram.h"
-#include "myCube.h"
-#include "myTeapot.h"
+#include "shaders/shaderprogram.h"
+#include "scr/models/myCube.h"
+#include "scr/models/myTeapot.h"
 
 float speed_x = 0;
 float speed_y = 0;
