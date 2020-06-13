@@ -1,3 +1,7 @@
 .idea
 cmake-build-debug
 main_file
+Chess.vcxproj*
+x64
+Debug
+glm
