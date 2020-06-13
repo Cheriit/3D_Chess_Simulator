@@ -33,16 +33,21 @@ Place, Fifth Floor, Boston, MA  02110 - 1301  USA
 #include "shaders/shaderprogram.h"
 #include "src/models/myCube.h"
 #include "src/models/myTeapot.h"
+#include "src/models/skybox.h"
 
 float speed_x = 0;
 float speed_y = 0;
 float aspectRatio = 1;
 float zoom_speed = 0;
 ShaderProgram *sp;
+ShaderProgram *skyboxShader;
 
 GLuint tex0;
 GLuint tex1;
+GLuint CubeMap;
+
 GLuint *object;
+GLuint Cube;
 
 //Odkomentuj, żeby rysować kostkę
 float *vertices = myCubeVertices;
@@ -120,6 +125,41 @@ GLuint readTexture(const char *filename)
 
     return tex;
 }
+
+GLuint setupSkybox()
+{
+    std::vector<std::string> faces = {
+        "./src/textures/skybox/right.png",
+        "./src/textures/skybox/left.png",
+        "./src/textures/skybox/top.png",
+        "./src/textures/skybox/bottom.png",
+        "./src/textures/skybox/front.png",
+        "./src/textures/skybox/back.png",
+    };
+    GLuint cubeMap;
+    std::vector<unsigned char> image;
+    unsigned width, height;
+    glGenTextures(1, &cubeMap);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMap);
+
+    for (int i = 0; i < 6; i++)
+    {
+        unsigned error = lodepng::decode(image, width, height, faces[i]);
+        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
+                     0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, (unsigned char *)image.data());
+    }
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+    glGenBuffers(1, &Cube);
+    glBindBuffer(GL_ARRAY_BUFFER, Cube);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(myCubeVertices), skyboxVertices, GL_STATIC_DRAW);
+
+    return cubeMap;
+}
 /**
  * Moves model to VBO
  * @param vertices  array with vertexes, each 4 numbers describes 1 vertex
@@ -183,9 +223,11 @@ void initOpenGLProgram(GLFWwindow *window)
     glfwSetKeyCallback(window, keyCallback);
 
     sp = new ShaderProgram("shaders/v_simplest.glsl", NULL, "shaders/f_simplest.glsl");
+    skyboxShader = new ShaderProgram("shaders/v_skybox.glsl", NULL, "shaders/f_skybox.glsl");
     tex0 = readTexture("src/textures/metal.png");
     tex1 = readTexture("src/textures/metal_spec.png");
     object = bufferModel(Loader.LoadedMeshes[0]);
+    CubeMap = setupSkybox();
 }
 
 //Zwolnienie zasobów zajętych przez program
@@ -194,9 +236,12 @@ void freeOpenGLProgram(GLFWwindow *window)
     //************Tutaj umieszczaj kod, który należy wykonać po zakończeniu pętli głównej************
     glDeleteTextures(1, &tex0);
     glDeleteTextures(1, &tex1);
+    glDeleteTextures(1, &CubeMap);
     glDeleteBuffers(3, object);
+    glDeleteBuffers(1, &Cube);
     delete object;
     delete sp;
+    delete skyboxShader;
 }
 /**
  * Draws object
@@ -258,7 +303,16 @@ void drawScene(GLFWwindow *window, float angle_x, float angle_y, float zoom)
     glUniformMatrix4fv(sp->u("V"), 1, false, glm::value_ptr(V));
     glUniformMatrix4fv(sp->u("M"), 1, false, glm::value_ptr(M));
 
-    drawObject(object, tex0, tex1, vertexCount);
+    // drawObject(object, tex0, tex1, vertexCount);
+
+    glDepthMask(GL_FALSE);
+    skyboxShader->use();
+    glUniformMatrix4fv(skyboxShader->u("P"), 1, false, glm::value_ptr(P));
+    glUniformMatrix4fv(skyboxShader->u("V"), 1, false, glm::value_ptr(V));
+    glBindVertexArray(Cube);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, CubeMap);
+    glDrawArrays(GL_TRIANGLES, 0, 36);
+    glDepthMask(GL_TRUE);
 
     glfwSwapBuffers(window); //Przerzuć tylny bufor na przedni
 }
