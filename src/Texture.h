@@ -2,6 +2,7 @@
 #include <GL/glew.h>
 #include <iostream>
 #include "libs/lodepng.h"
+#include "libs/stb_image.h"
 
 class Texture
 {
