@@ -27,36 +27,29 @@ Place, Fifth Floor, Boston, MA  02110 - 1301  USA
 #include "../glm/gtc/matrix_transform.hpp"
 #include <stdlib.h>
 #include <stdio.h>
-#include "constants.h"
-#include "libs/lodepng.h"
+#include "../constants.h"
 #include "libs/OBJ_Loader.h"
-#include "../res/shaders/shaderprogram.h"
-#include "../res/models/myCube.h"
-#include "../res/models/myTeapot.h"
-#include "../res/models/skybox.h"
+#include "../src/ShaderProgram.h"
+
+#include "Drawer.h"
+#include "VertexArray.h"
+#include "VertexBuffer.h"
+#include "IndexBuffer.h"
+#include "Texture.h"
 
 float speed_x = 0;
 float speed_y = 0;
 float aspectRatio = 1;
 float zoom_speed = 0;
 ShaderProgram *sp;
-ShaderProgram *skyboxShader;
 
-GLuint tex0;
-GLuint tex1;
-GLuint CubeMap;
+Texture *tex0;
+Texture *tex1;
 
-GLuint *object;
-GLuint Cube;
+VertexArray *VAO = 0;
+VertexBuffer* VBO = 0;
+IndexBuffer *EBO = 0;
 
-//Odkomentuj, żeby rysować kostkę
-float *vertices = myCubeVertices;
-float *normals = myCubeNormals;
-float *texCoords = myCubeTexCoords;
-int vertexCount = myCubeVertexCount;
-int vertexCountTmp = 0;
-
-//Procedura obsługi błędów
 void error_callback(int error, const char *description)
 {
     fputs(description, stderr);
@@ -104,181 +97,79 @@ void windowResizeCallback(GLFWwindow *window, int width, int height)
     glViewport(0, 0, width, height);
 }
 
-GLuint readTexture(const char *filename)
+void bufferModel(objl::Mesh Mesh, VertexArray *VAOo, VertexBuffer *VBOo, IndexBuffer *EBOo)
 {
-    GLuint tex;
-    glActiveTexture(GL_TEXTURE0);
-    // wczytanie do pamieci komputera
-    std::vector<unsigned char> image; // wektor do wczytania obrazu
-    unsigned width, height;           //wymiary
-    // wczytanie obrazu
-    unsigned error = lodepng::decode(image, width, height, filename);
-
-    //Import do pamięci karty graficznej
-    glGenTextures(1, &tex);
-    glBindTexture(GL_TEXTURE_2D, tex); //uaktywnij uchwyt
-    //Wczytaj obraz do pamieci Karty Graficznej skojaroznej z uchwytem
-    glTexImage2D(GL_TEXTURE_2D, 0, 4, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (unsigned char *)image.data());
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-    return tex;
-}
-
-GLuint setupSkybox()
-{
-    std::vector<std::string> faces = {
-        "./res/textures/skybox/right.png",
-        "./res/textures/skybox/left.png",
-        "./res/textures/skybox/top.png",
-        "./res/textures/skybox/bottom.png",
-        "./res/textures/skybox/front.png",
-        "./res/textures/skybox/back.png",
-    };
-    GLuint cubeMap;
-    std::vector<unsigned char> image;
-    unsigned width, height;
-    glGenTextures(1, &cubeMap);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMap);
-
-    for (int i = 0; i < 6; i++)
-    {
-        unsigned error = lodepng::decode(image, width, height, faces[i]);
-        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
-                     0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, (unsigned char *)image.data());
-    }
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-
-    glGenBuffers(1, &Cube);
-    glBindBuffer(GL_ARRAY_BUFFER, Cube);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(myCubeVertices), skyboxVertices, GL_STATIC_DRAW);
-
-    return cubeMap;
-}
-/**
- * Moves model to VBO
- * @param vertices  array with vertexes, each 4 numbers describes 1 vertex
- * @param normals   array with normals, each 4 numbers describes 1 normal
- * @param texCoords array with texturing coordinates, each 2 numbers describes 1 texturing coordinate
- * @param vertexCount amount of vertexes in mesh
- * @return VBO buffer array, with indexes 0 - vertices, 1 - normals, 2 - texturing coordinates
- **/
-GLuint *bufferModel(objl::Mesh Mesh)
-{
-    int vertexCount = Mesh.Indices.size();
-    vertexCountTmp = vertexCount;
-    std::vector<float> vertices, normals, texCoords;
+    int vertexCount = Mesh.Vertices.size();
+    std::vector<float> vertices;
     objl::Vertex vertex;
-
     for (int i = 0; i < vertexCount; i++)
     {
-        vertex = Mesh.Vertices[Mesh.Indices[i]];
+        vertex = Mesh.Vertices[i];
         vertices.push_back(vertex.Position.X);
         vertices.push_back(vertex.Position.Y);
         vertices.push_back(vertex.Position.Z);
 
-        normals.push_back(vertex.Normal.X);
-        normals.push_back(vertex.Normal.Y);
-        normals.push_back(vertex.Normal.Z);
+        vertices.push_back(vertex.Normal.X);
+        vertices.push_back(vertex.Normal.Y);
+        vertices.push_back(vertex.Normal.Z);
 
-        texCoords.push_back(vertex.TextureCoordinate.X);
-        texCoords.push_back(vertex.TextureCoordinate.Y);
+        vertices.push_back(vertex.TextureCoordinate.X);
+        vertices.push_back(vertex.TextureCoordinate.Y);
     }
 
-    GLuint *bufVertices = (GLuint *)malloc(sizeof(GLuint) * 3);
-    glGenBuffers(3, bufVertices);
-    glBindBuffer(GL_ARRAY_BUFFER, bufVertices[0]);
-    glBufferData(GL_ARRAY_BUFFER, vertexCount * sizeof(float) * 3, vertices.data(), GL_STATIC_DRAW);
-    glBindBuffer(GL_ARRAY_BUFFER, bufVertices[1]);
-    glBufferData(GL_ARRAY_BUFFER, vertexCount * sizeof(float) * 3, normals.data(), GL_STATIC_DRAW);
-    glBindBuffer(GL_ARRAY_BUFFER, bufVertices[2]);
-    glBufferData(GL_ARRAY_BUFFER, vertexCount * sizeof(float) * 2, texCoords.data(), GL_STATIC_DRAW);
+    VAO = new VertexArray();
 
-    return bufVertices;
+    VBO = new VertexBuffer(vertices.data(), vertexCount*8);
+    VAO->AddLayout(*VBO, sp->a("vertex"), 3, 8, 0);
+    VAO->AddLayout(*VBO, sp->a("normal"), 3, 8, 3);
+    VAO->AddLayout(*VBO, sp->a("texCoord0"), 2, 8, 6);
+
+    EBO = new IndexBuffer(Mesh.Indices.data(), Mesh.Indices.size());
 }
 
-//Procedura inicjująca
 void initOpenGLProgram(GLFWwindow *window)
 {
-    objl::Loader Loader;
-    bool results = Loader.LoadFile("./res/models/PiezasAjedrez.obj");
-    if (!results)
-    {
-        fprintf(stderr, "Nie można wczytać siatki obiektów.\n");
-        exit(EXIT_FAILURE);
-    }
-    //************Tutaj umieszczaj kod, który należy wykonać raz, na początku programu************
     glClearColor(0, 0, 0, 1);
     glEnable(GL_DEPTH_TEST);
     glfwSetWindowSizeCallback(window, windowResizeCallback);
     glfwSetKeyCallback(window, keyCallback);
 
     sp = new ShaderProgram("./res/shaders/v_simplest.glsl", NULL, "./res/shaders/f_simplest.glsl");
-    skyboxShader = new ShaderProgram("./res/shaders/v_skybox.glsl", NULL, "./res/shaders/f_skybox.glsl");
-    tex0 = readTexture("./res/textures/metal.png");
-    tex1 = readTexture("./res/textures/metal_spec.png");
-    object = bufferModel(Loader.LoadedMeshes[0]);
-    CubeMap = setupSkybox();
+
+    objl::Loader Loader;
+    if (!Loader.LoadFile("./res/models/PiezasAjedrez.obj"))
+    {
+        fprintf(stderr, "Nie można wczytać siatki obiektów.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    bufferModel(Loader.LoadedMeshes[0], VAO, VBO, EBO);
+
+    tex0 = new Texture("./res/textures/metal.png");
+    tex1 = new Texture("./res/textures/metal_spec.png");
 }
 
-//Zwolnienie zasobów zajętych przez program
 void freeOpenGLProgram(GLFWwindow *window)
 {
-    //************Tutaj umieszczaj kod, który należy wykonać po zakończeniu pętli głównej************
-    glDeleteTextures(1, &tex0);
-    glDeleteTextures(1, &tex1);
-    glDeleteTextures(1, &CubeMap);
-    glDeleteBuffers(3, object);
-    glDeleteBuffers(1, &Cube);
-    delete object;
-    delete sp;
-    delete skyboxShader;
 }
-/**
- * Draws object
- * @param vbo vbo buffer array
- * @param tex0 base texture
- * @param tex1 diffuse map
- * @param vertexCount amount of vertices 
- **/
-void drawObject(GLuint *vbo, GLuint tex0, GLuint tex1, int vertexCount)
+
+void drawObject(VertexArray *VAO, IndexBuffer *EBO, Texture *tex0, Texture *tex1)
 {
-    glEnableVertexAttribArray(sp->a("vertex"));                       //Włącz przesyłanie danych do atrybutu vertex
-    glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);                            //Przypisz odpowieni bufor danych ze współrzędnymi wierzchołków
-    glVertexAttribPointer(sp->a("vertex"), 3, GL_FLOAT, false, 0, 0); //Wskaż bufor dla atrybutu vertex
+    VAO->Bind();
+    EBO->Bind();
+    tex0->Bind(sp->u("textureMap0"), 0);
+    tex1->Bind(sp->u("textureMap1"), 1);
 
-    glEnableVertexAttribArray(sp->a("normal"));                       //Włącz przesyłanie danych do atrybutu normal
-    glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);                            //Przypisz odpowieni bufor danych ze współrzędnymi wektorów normalnych
-    glVertexAttribPointer(sp->a("normal"), 3, GL_FLOAT, false, 0, 0); //Wskaż bufor dla atrybutu normal
+    glDrawElements(GL_TRIANGLES, EBO->getCount(), GL_UNSIGNED_INT, nullptr);
 
-    glEnableVertexAttribArray(sp->a("texCoord0"));                       //Włącz przesyłanie danych do atrybutu texCoord
-    glBindBuffer(GL_ARRAY_BUFFER, vbo[2]);                               //Przypisz odpowieni bufor danych ze współrzędnymi teksturowania
-    glVertexAttribPointer(sp->a("texCoord0"), 2, GL_FLOAT, false, 0, 0); //Wskaż bufor dla atrybutu texCoord
-
-    glUniform1i(sp->u("textureMap0"), 0); //Przypisz do zmiennej jednorodnej nr. jednostki teksturującej
-    glActiveTexture(GL_TEXTURE0);         //Aktywuj jednostkę teksturującą
-    glBindTexture(GL_TEXTURE_2D, tex0);   //Przypisz teksturę do jednostki teksturującej
-
-    glUniform1i(sp->u("textureMap1"), 1); //Przypisz do zmiennej jednorodnej nr. jednostki teksturującej
-    glActiveTexture(GL_TEXTURE1);         //Aktywuj jednostkę teksturującą
-    glBindTexture(GL_TEXTURE_2D, tex1);   //Przypisz teksturę do jednostki teksturującej
-
-    glDrawArrays(GL_TRIANGLES, 0, vertexCountTmp); //Narysuj obiekt
-
-    glDisableVertexAttribArray(sp->a("vertex"));    //Wyłącz przesyłanie danych do atrybutu vertex
-    glDisableVertexAttribArray(sp->a("normal"));    //Wyłącz przesyłanie danych do atrybutu normal
-    glDisableVertexAttribArray(sp->a("texCoord0")); //Wyłącz przesyłanie danych do atrybutu texCoord
+    VAO->Unbind();
+    EBO->Unbind();
+    tex0->Unbind(0);
+    tex1->Unbind(0);
 }
 
-//Procedura rysująca zawartość sceny
 void drawScene(GLFWwindow *window, float angle_x, float angle_y, float zoom)
 {
-    //************Tutaj umieszczaj kod rysujący obraz******************l
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glm::mat4 V = glm::lookAt(
@@ -287,87 +178,81 @@ void drawScene(GLFWwindow *window, float angle_x, float angle_y, float zoom)
         glm::vec3(0.0f, 1.0f, 0.0f)   // Wektor nosa
     );
 
-    glm::mat4 P = glm::perspective(50.0f * PI / 180.0f, aspectRatio, 0.01f, 50.0f); //Wylicz macierz rzutowania
+    glm::mat4 P = glm::perspective(50.0f * PI / 180.0f, aspectRatio, 0.01f, 50.0f);
 
     glm::mat4 M = glm::mat4(1.0f);
-    M = glm::rotate(M, angle_y, glm::vec3(1.0f, 0.0f, 0.0f)); //Wylicz macierz modelu
-    M = glm::rotate(M, angle_x, glm::vec3(0.0f, 1.0f, 0.0f)); //Wylicz macierz modelu
+    M = glm::rotate(M, angle_y, glm::vec3(1.0f, 0.0f, 0.0f)); 
+    M = glm::rotate(M, angle_x, glm::vec3(0.0f, 1.0f, 0.0f)); 
 
-    sp->use(); //Aktywacja programu cieniującego
-    //Przeslij parametry programu cieniującego do karty graficznej
+    sp->use(); 
+
     glUniformMatrix4fv(sp->u("P"), 1, false, glm::value_ptr(P));
     glUniformMatrix4fv(sp->u("V"), 1, false, glm::value_ptr(V));
     glUniformMatrix4fv(sp->u("M"), 1, false, glm::value_ptr(M));
 
-    drawObject(object, tex0, tex1, vertexCount);
+    drawObject(VAO, EBO, tex0, tex1);
 
-    glDepthMask(GL_FALSE);
-    skyboxShader->use();
-    glUniformMatrix4fv(skyboxShader->u("P"), 1, false, glm::value_ptr(P));
-    glUniformMatrix4fv(skyboxShader->u("V"), 1, false, glm::value_ptr(V));
-    glBindVertexArray(Cube);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, CubeMap);
-    glDrawArrays(GL_TRIANGLES, 0, 36);
-    glDepthMask(GL_TRUE);
-
-    glfwSwapBuffers(window); //Przerzuć tylny bufor na przedni
+    glfwSwapBuffers(window);
 }
 
 int main(void)
 {
-    GLFWwindow *window; //Wskaźnik na obiekt reprezentujący okno
+    GLFWwindow* window;
 
-    glfwSetErrorCallback(error_callback); //Zarejestruj procedurę obsługi błędów
+    glfwSetErrorCallback(error_callback);
 
     if (!glfwInit())
-    { //Zainicjuj bibliotekę GLFW
+    {
         fprintf(stderr, "Nie można zainicjować GLFW.\n");
         exit(EXIT_FAILURE);
     }
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    window = glfwCreateWindow(500, 500, "OpenGL", NULL,
-                              NULL); //Utwórz okno 500x500 o tytule "OpenGL" i kontekst OpenGL.
+    window = glfwCreateWindow(500, 500, "OpenGL", NULL, NULL);
 
-    if (!window) //Jeżeli okna nie udało się utworzyć, to zamknij program
+    if (!window)
     {
         fprintf(stderr, "Nie można utworzyć okna.\n");
         glfwTerminate();
         exit(EXIT_FAILURE);
     }
 
-    glfwMakeContextCurrent(
-        window);         //Od tego momentu kontekst okna staje się aktywny i polecenia OpenGL będą dotyczyć właśnie jego.
-    glfwSwapInterval(1); //Czekaj na 1 powrót plamki przed pokazaniem ukrytego bufora
-
-    if (glewInit() != GLEW_OK)
-    { //Zainicjuj bibliotekę GLEW
-        fprintf(stderr, "Nie można zainicjować GLEW.\n");
-        exit(EXIT_FAILURE);
-    }
-
-    initOpenGLProgram(window); //Operacje inicjujące
-
-    double angle_x = 0; //Aktualny kąt obrotu obiektu
-    double angle_y = 0; //Aktualny kąt obrotu obiektu
-    double zoom = 1;    //Aktualne przybliżenie
-
-    //Główna pętla
-    glfwSetTime(0);                        //Zeruj timer
-    while (!glfwWindowShouldClose(window)) //Tak długo jak okno nie powinno zostać zamknięte
+    glfwMakeContextCurrent(window);         
+    glfwSwapInterval(1);
     {
-        angle_x += speed_x *
-                   glfwGetTime(); //Zwiększ/zmniejsz kąt obrotu na podstawie prędkości i czasu jaki upłynał od poprzedniej klatki
-        angle_y += speed_y *
-                   glfwGetTime(); //Zwiększ/zmniejsz kąt obrotu na podstawie prędkości i czasu jaki upłynał od poprzedniej klatki
-        zoom += zoom_speed * glfwGetTime();
-        glfwSetTime(0);                            //Zeruj timer
-        drawScene(window, angle_x, angle_y, zoom); //Wykonaj procedurę rysującą
-        glfwPollEvents();                          //Wykonaj procedury callback w zalezności od zdarzeń jakie zaszły.
-    }
+        if (glewInit() != GLEW_OK)
+        {
+            fprintf(stderr, "Nie można zainicjować GLEW.\n");
+            exit(EXIT_FAILURE);
+        }
 
-    freeOpenGLProgram(window);
+        initOpenGLProgram(window);
 
-    glfwDestroyWindow(window); //Usuń kontekst OpenGL i okno
-    glfwTerminate();           //Zwolnij zasoby zajęte przez GLFW
+        double angle_x = 0;
+        double angle_y = 0;
+        double zoom = 1;
+
+        //Główna pętla
+        glUseProgram(0);
+        glBindVertexArray(0);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+        glfwSetTime(0);
+        while (!glfwWindowShouldClose(window))
+        {
+            angle_x += speed_x * glfwGetTime();
+            angle_y += speed_y * glfwGetTime();
+            zoom += zoom_speed * glfwGetTime();
+            glfwSetTime(0);
+            drawScene(window, angle_x, angle_y, zoom);
+            glfwPollEvents();
+        }
+
+        freeOpenGLProgram(window);
+        glfwDestroyWindow(window);
+}
+    glfwTerminate();
     exit(EXIT_SUCCESS);
 }

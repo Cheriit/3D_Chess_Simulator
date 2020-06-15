@@ -5,9 +5,10 @@ out vec3 TexCoords;
 
 uniform mat4 P;
 uniform mat4 V;
+uniform mat4 M;
 
 void main()
 {
-    TexCoords = pos;
-    gl_Position = P * V * vec4(pos, 1.0);
+    TexCoords = vec3(M*vec4(pos, 1.0));
+    gl_Position = (P * V * M * vec4(pos, 1.0)).xyww;
 }  
