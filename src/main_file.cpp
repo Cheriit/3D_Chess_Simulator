@@ -117,14 +117,13 @@ void bufferModel(objl::Mesh Mesh, VertexArray *VAOo, VertexBuffer *VBOo, IndexBu
         vertices.push_back(vertex.TextureCoordinate.Y);
     }
 
-    VAO = new VertexArray();
-
+    GLCall(VAO = new VertexArray());
     VBO = new VertexBuffer(vertices.data(), vertexCount*8);
-    VAO->AddLayout(*VBO, sp->a("vertex"), 3, 8, 0);
-    VAO->AddLayout(*VBO, sp->a("normal"), 3, 8, 3);
-    VAO->AddLayout(*VBO, sp->a("texCoord0"), 2, 8, 6);
+    GLCall(VAO->AddLayout(*VBO, 1, 3, 8, 0));
+    GLCall(VAO->AddLayout(*VBO, 2, 3, 8, 3));
+    GLCall(VAO->AddLayout(*VBO, 3, 2, 8, 6));
 
-    EBO = new IndexBuffer(Mesh.Indices.data(), Mesh.Indices.size());
+    GLCall(EBO = new IndexBuffer(Mesh.Indices.data(), Mesh.Indices.size()));
 }
 
 void initOpenGLProgram(GLFWwindow *window)
@@ -143,10 +142,10 @@ void initOpenGLProgram(GLFWwindow *window)
         exit(EXIT_FAILURE);
     }
 
-    bufferModel(Loader.LoadedMeshes[0], VAO, VBO, EBO);
+    GLCall(bufferModel(Loader.LoadedMeshes[0], VAO, VBO, EBO));
 
-    tex0 = new Texture("./res/textures/metal.png");
-    tex1 = new Texture("./res/textures/metal_spec.png");
+    GLCall(tex0 = new Texture("./res/textures/set2/MirroredBoard.png"));
+    GLCall(tex1 = new Texture("./res/textures/metal_spec.png"));
 }
 
 void freeOpenGLProgram(GLFWwindow *window)
@@ -157,15 +156,15 @@ void drawObject(VertexArray *VAO, IndexBuffer *EBO, Texture *tex0, Texture *tex1
 {
     VAO->Bind();
     EBO->Bind();
-    tex0->Bind(sp->u("textureMap0"), 0);
-    tex1->Bind(sp->u("textureMap1"), 1);
+    tex0->Bind(sp->u("textureMap0"), 0, GL_TEXTURE0);
+    tex1->Bind(sp->u("textureMap1"), 1, GL_TEXTURE1);
 
-    glDrawElements(GL_TRIANGLES, EBO->getCount(), GL_UNSIGNED_INT, nullptr);
+    GLCall(glDrawElements(GL_TRIANGLES, EBO->getCount(), GL_UNSIGNED_INT, nullptr));
 
     VAO->Unbind();
     EBO->Unbind();
-    tex0->Unbind(0);
-    tex1->Unbind(0);
+    tex0->Unbind(GL_TEXTURE0);
+    tex1->Unbind(GL_TEXTURE1);
 }
 
 void drawScene(GLFWwindow *window, float angle_x, float angle_y, float zoom)
@@ -206,8 +205,8 @@ int main(void)
         fprintf(stderr, "Nie można zainicjować GLFW.\n");
         exit(EXIT_FAILURE);
     }
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     window = glfwCreateWindow(500, 500, "OpenGL", NULL, NULL);

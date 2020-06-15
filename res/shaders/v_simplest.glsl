@@ -6,9 +6,9 @@ uniform mat4 V;
 uniform mat4 M;
 
 //Atrybuty
-in vec3 vertex; //wspolrzedne wierzcholka w przestrzeni modelu
-in vec3 normal; //wektor normalny w przestrzeni modelu
-in vec2 texCoord0;
+layout (location = 1) in vec3 vertex; //wspolrzedne wierzcholka w przestrzeni modelu
+layout (location = 2) in vec3 normal; //wektor normalny w przestrzeni modelu
+layout (location = 3) in vec2 texCoord0;
 
 //Zmienne interpolowane
 out vec4 l;
