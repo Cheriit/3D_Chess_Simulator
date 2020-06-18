@@ -1,4 +1,7 @@
 #pragma once
+#ifndef SKYBOX_H
+#define SKYBOX_H
+
 #include "Drawable.h"
 //TODO Skybox class
 class Skybox :
@@ -61,3 +64,4 @@ class Skybox :
    //glDrawArrays(GL_TRIANGLES, 0, 36);
    //glDisableVertexAttribArray(0);
    //glDepthFunc(GL_LESS);
+#endif

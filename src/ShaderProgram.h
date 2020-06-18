@@ -17,13 +17,14 @@ jeśli nie - napisz do Free Software Foundation, Inc., 59 Temple
 Place, Fifth Floor, Boston, MA  02110 - 1301  USA
 */
 
+#pragma once
 
 #ifndef SHADERPROGRAM_H
 #define SHADERPROGRAM_H
 
 
 #include <GL/glew.h>
-#include "stdio.h"
+#include <stdio.h>
 
 
 

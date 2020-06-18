@@ -1,4 +1,7 @@
 #pragma once
+#ifndef VERTEX_ARRAY_H
+#define VERTEX_ARRAY_H
+
 #include <GL/glew.h>
 #include "VertexBuffer.h"
 
@@ -16,3 +19,4 @@ public:
 	void Unbind();
 };
 
+#endif

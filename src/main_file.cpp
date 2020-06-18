@@ -16,25 +16,21 @@ Powszechnej Licencji Publicznej GNU(GNU General Public License);
 jeśli nie - napisz do Free Software Foundation, Inc., 59 Temple
 Place, Fifth Floor, Boston, MA  02110 - 1301  USA
 */
-
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_SWIZZLE
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
-#include "../glm/glm.hpp"
-#include "../glm/gtc/type_ptr.hpp"
-#include "../glm/gtc/matrix_transform.hpp"
+#include "glm/glm.hpp"
+#include "glm/gtc/type_ptr.hpp"
+#include "glm/gtc/matrix_transform.hpp"
+#include "OBJ_Loader/OBJ_Loader.h"
 #include <stdlib.h>
 #include <stdio.h>
-#include "../constants.h"
-#include "libs/OBJ_Loader.h"
-#include "../src/ShaderProgram.h"
 
-#include "Drawer.h"
-#include "VertexArray.h"
-#include "VertexBuffer.h"
-#include "IndexBuffer.h"
+#include "../constants.h"
+#include "ShaderProgram.h"
+#include "Drawable.h"
 #include "Texture.h"
 
 float speed_x = 0;
@@ -46,9 +42,11 @@ ShaderProgram *sp;
 Texture *tex0;
 Texture *tex1;
 
-VertexArray *VAO = 0;
-VertexBuffer* VBO = 0;
-IndexBuffer *EBO = 0;
+VertexArray* VAO;
+ElementBuffer* EBO;
+
+
+Drawable* object = 0;
 
 void error_callback(int error, const char *description)
 {
@@ -97,7 +95,7 @@ void windowResizeCallback(GLFWwindow *window, int width, int height)
     glViewport(0, 0, width, height);
 }
 
-void bufferModel(objl::Mesh Mesh, VertexArray *VAOo, VertexBuffer *VBOo, IndexBuffer *EBOo)
+void processMesh(objl::Mesh Mesh)
 {
     int vertexCount = Mesh.Vertices.size();
     std::vector<float> vertices;
@@ -118,12 +116,12 @@ void bufferModel(objl::Mesh Mesh, VertexArray *VAOo, VertexBuffer *VBOo, IndexBu
     }
 
     GLCall(VAO = new VertexArray());
-    VBO = new VertexBuffer(vertices.data(), vertexCount*8);
+    GLCall(VertexBuffer* VBO = new VertexBuffer(vertices.data(), vertexCount * 8));
     GLCall(VAO->AddLayout(*VBO, 1, 3, 8, 0));
     GLCall(VAO->AddLayout(*VBO, 2, 3, 8, 3));
     GLCall(VAO->AddLayout(*VBO, 3, 2, 8, 6));
 
-    GLCall(EBO = new IndexBuffer(Mesh.Indices.data(), Mesh.Indices.size()));
+    GLCall(EBO = new ElementBuffer(Mesh.Indices.data(), Mesh.Indices.size()));
 }
 
 void initOpenGLProgram(GLFWwindow *window)
@@ -132,6 +130,9 @@ void initOpenGLProgram(GLFWwindow *window)
     glEnable(GL_DEPTH_TEST);
     glfwSetWindowSizeCallback(window, windowResizeCallback);
     glfwSetKeyCallback(window, keyCallback);
+    //glEnable(GL_BLEND);
+    //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_CONSTANT_ALPHA);
+    glEnable(GL_MULTISAMPLE);
 
     sp = new ShaderProgram("./res/shaders/v_simplest.glsl", NULL, "./res/shaders/f_simplest.glsl");
 
@@ -142,29 +143,17 @@ void initOpenGLProgram(GLFWwindow *window)
         exit(EXIT_FAILURE);
     }
 
-    GLCall(bufferModel(Loader.LoadedMeshes[0], VAO, VBO, EBO));
-
-    GLCall(tex0 = new Texture("./res/textures/set2/MirroredBoard.png"));
-    GLCall(tex1 = new Texture("./res/textures/metal_spec.png"));
+    tex0 = new Texture("./res/textures/chess/TableroDiffuse02.png", "textureMap0");
+    //tex1 = new Texture("./res/textures/chess/Tableroambient.png", "textureMap1");
+    
+    processMesh(Loader.LoadedMeshes[0]);
+    object = new Drawable(VAO, EBO, sp);
+    object->PushTexture(tex0);
+    //object->PushTexture(tex1);
 }
 
 void freeOpenGLProgram(GLFWwindow *window)
 {
-}
-
-void drawObject(VertexArray *VAO, IndexBuffer *EBO, Texture *tex0, Texture *tex1)
-{
-    VAO->Bind();
-    EBO->Bind();
-    tex0->Bind(sp->u("textureMap0"), 0, GL_TEXTURE0);
-    tex1->Bind(sp->u("textureMap1"), 1, GL_TEXTURE1);
-
-    GLCall(glDrawElements(GL_TRIANGLES, EBO->getCount(), GL_UNSIGNED_INT, nullptr));
-
-    VAO->Unbind();
-    EBO->Unbind();
-    tex0->Unbind(GL_TEXTURE0);
-    tex1->Unbind(GL_TEXTURE1);
 }
 
 void drawScene(GLFWwindow *window, float angle_x, float angle_y, float zoom)
@@ -172,7 +161,7 @@ void drawScene(GLFWwindow *window, float angle_x, float angle_y, float zoom)
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glm::mat4 V = glm::lookAt(
-        glm::vec3(0, 0, -2.5 * zoom), // Pozycja
+        glm::vec3(0, 0, -2.5*zoom), // Pozycja
         glm::vec3(0, 0, 0),           // Obserwowany punkt
         glm::vec3(0.0f, 1.0f, 0.0f)   // Wektor nosa
     );
@@ -189,7 +178,7 @@ void drawScene(GLFWwindow *window, float angle_x, float angle_y, float zoom)
     glUniformMatrix4fv(sp->u("V"), 1, false, glm::value_ptr(V));
     glUniformMatrix4fv(sp->u("M"), 1, false, glm::value_ptr(M));
 
-    drawObject(VAO, EBO, tex0, tex1);
+    object->Draw();
 
     glfwSwapBuffers(window);
 }
@@ -197,7 +186,6 @@ void drawScene(GLFWwindow *window, float angle_x, float angle_y, float zoom)
 int main(void)
 {
     GLFWwindow* window;
-
     glfwSetErrorCallback(error_callback);
 
     if (!glfwInit())
@@ -205,6 +193,8 @@ int main(void)
         fprintf(stderr, "Nie można zainicjować GLFW.\n");
         exit(EXIT_FAILURE);
     }
+    glfwWindowHint(GLFW_SAMPLES, 4);
+
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);

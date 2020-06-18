@@ -1,4 +1,6 @@
 #pragma once
+#ifndef DRAWER_H
+#define DRAWER_H
 
 #include <iostream>
 #include <GL/glew.h>
@@ -10,3 +12,4 @@
 
 void glClearError();
 bool glLogCall();
+#endif

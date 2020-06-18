@@ -1,4 +1,7 @@
 #pragma once
+#ifndef CAMERA_H
+#define CAMERA_H
+
 #include <GL/glew.h>
 #include "../glm/glm.hpp"
 
@@ -10,3 +13,4 @@ private:
 
 };
 
+#endif

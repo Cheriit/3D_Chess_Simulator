@@ -1,4 +1,7 @@
 #pragma once
+#ifndef VERTEX_BUFFER_H
+#define VERTEX_BUFFER_H
+
 #include <GL/glew.h>
 class VertexBuffer
 {
@@ -11,4 +14,4 @@ public:
 	void Bind();
 	void Unbind();
 };
-
+#endif
