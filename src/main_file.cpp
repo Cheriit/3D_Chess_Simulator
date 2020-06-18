@@ -32,6 +32,7 @@ Place, Fifth Floor, Boston, MA  02110 - 1301  USA
 #include "ShaderProgram.h"
 #include "Drawable.h"
 #include "Texture.h"
+#include "Skybox.h"
 
 float speed_x = 0;
 float speed_y = 0;
@@ -45,8 +46,10 @@ Texture *tex1;
 VertexArray* VAO;
 ElementBuffer* EBO;
 
+Skybox* skybox;
 
 Drawable* object = 0;
+Drawable* object2 = 0;
 
 void error_callback(int error, const char *description)
 {
@@ -116,10 +119,11 @@ void processMesh(objl::Mesh Mesh)
     }
 
     GLCall(VAO = new VertexArray());
+    VAO->Bind();
     GLCall(VertexBuffer* VBO = new VertexBuffer(vertices.data(), vertexCount * 8));
-    GLCall(VAO->AddLayout(*VBO, 1, 3, 8, 0));
-    GLCall(VAO->AddLayout(*VBO, 2, 3, 8, 3));
-    GLCall(VAO->AddLayout(*VBO, 3, 2, 8, 6));
+    GLCall(VAO->AddLayout(*VBO, 0, 3, 8, 0));
+    GLCall(VAO->AddLayout(*VBO, 1, 3, 8, 3));
+    GLCall(VAO->AddLayout(*VBO, 2, 2, 8, 6));
 
     GLCall(EBO = new ElementBuffer(Mesh.Indices.data(), Mesh.Indices.size()));
 }
@@ -145,11 +149,18 @@ void initOpenGLProgram(GLFWwindow *window)
 
     tex0 = new Texture("./res/textures/chess/TableroDiffuse02.png", "textureMap0");
     //tex1 = new Texture("./res/textures/chess/Tableroambient.png", "textureMap1");
-    
+    tex1 = new Texture("./res/textures/chess/PiezasAjedrezDiffuseMarmol.png", "textureMap0");
+
     processMesh(Loader.LoadedMeshes[0]);
     object = new Drawable(VAO, EBO, sp);
     object->PushTexture(tex0);
+
+    processMesh(Loader.LoadedMeshes[1]);
+    object2 = new Drawable(VAO, EBO, sp);
+    object2->PushTexture(tex1);
     //object->PushTexture(tex1);
+
+    GLCall(skybox = new Skybox());
 }
 
 void freeOpenGLProgram(GLFWwindow *window)
@@ -161,7 +172,7 @@ void drawScene(GLFWwindow *window, float angle_x, float angle_y, float zoom)
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glm::mat4 V = glm::lookAt(
-        glm::vec3(0, 0, -2.5*zoom), // Pozycja
+        glm::vec3(0, 0, -0.5), // Pozycja
         glm::vec3(0, 0, 0),           // Obserwowany punkt
         glm::vec3(0.0f, 1.0f, 0.0f)   // Wektor nosa
     );
@@ -178,8 +189,9 @@ void drawScene(GLFWwindow *window, float angle_x, float angle_y, float zoom)
     glUniformMatrix4fv(sp->u("V"), 1, false, glm::value_ptr(V));
     glUniformMatrix4fv(sp->u("M"), 1, false, glm::value_ptr(M));
 
-    object->Draw();
-
+    GLCall(object->Draw());
+    GLCall(object2->Draw());
+    GLCall(skybox->Draw(glm::mat4(glm::mat3(V)), P));
     glfwSwapBuffers(window);
 }
 

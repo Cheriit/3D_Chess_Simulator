@@ -1,5 +1,12 @@
 #include "Drawable.h"
 
+Drawable::Drawable()
+{
+    VAO = nullptr;
+    EBO = nullptr;
+    SP = nullptr;
+}
+
 Drawable::Drawable(VertexArray* VAO, ElementBuffer* EBO, ShaderProgram* SP)
 	: VAO(VAO), EBO(EBO), SP(SP)
 {

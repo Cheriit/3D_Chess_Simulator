@@ -13,9 +13,9 @@
 
 class Drawable
 {
-private:
+protected:
+	Drawable();
 	VertexArray *VAO;
-	VertexBuffer *VBO;
 	ElementBuffer *EBO;
 	ShaderProgram *SP;
 	std::vector<Texture*> Tex;

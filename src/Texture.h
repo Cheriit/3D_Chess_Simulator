@@ -5,7 +5,6 @@
 #include <GL/glew.h>
 #include <iostream>
 #include <vector>
-#include "stb_image/stb_image.h"
 #include "Drawer.h"
 
 class Texture

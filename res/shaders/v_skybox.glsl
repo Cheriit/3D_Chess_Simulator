@@ -9,6 +9,7 @@ uniform mat4 M;
 
 void main()
 {
-    TexCoords = vec3(M*vec4(pos, 1.0));
-    gl_Position = (P * V * M * vec4(pos, 1.0)).xyww;
+    TexCoords = pos;
+    vec4 position = (P * V * vec4(pos, 1.0));
+    gl_Position = position.xyww;
 }  
