@@ -13,10 +13,15 @@ class Camera
 private:
 	glm::vec3 Position;
 	glm::vec3 Face;
+	glm::vec3 Right;
+	float Yaw;
+	float Pitch;
+	void UpdateFace();
 public:
-	Camera(glm::vec3 Position, glm::vec3 Face);
+	Camera(glm::vec3 Position, glm::vec3 Face, glm::vec3 Right);
 	glm::mat4 GetCameraMatrix();
 	void CameraKeyCallback(GLFWwindow* window);
+	void CameraMouseCallback(GLFWwindow* window);
 };
 
 #endif

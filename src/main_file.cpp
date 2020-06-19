@@ -36,10 +36,7 @@ Place, Fifth Floor, Boston, MA  02110 - 1301  USA
 #include "Board.h"
 #include "Camera.h"
 
-float speed_x = 0;
-float speed_y = 0;
 float aspectRatio = 1;
-float zoom_speed = 0;
 ShaderProgram*sp;
 
 Texture *tex0;
@@ -58,40 +55,6 @@ Camera* camera;
 void error_callback(int error, const char *description)
 {
     fputs(description, stderr);
-}
-
-void keyCallback(GLFWwindow *window, int key, int scancode, int action, int mods)
-{
-    if (action == GLFW_PRESS)
-    {
-        if (key == GLFW_KEY_LEFT)
-            speed_x = -PI / 2;
-        if (key == GLFW_KEY_RIGHT)
-            speed_x = PI / 2;
-        if (key == GLFW_KEY_UP)
-            speed_y = PI / 2;
-        if (key == GLFW_KEY_DOWN)
-            speed_y = -PI / 2;
-        if (key == GLFW_KEY_Z)
-            zoom_speed = PI / 2;
-        if (key == GLFW_KEY_X)
-            zoom_speed = -PI / 2;
-    }
-    if (action == GLFW_RELEASE)
-    {
-        if (key == GLFW_KEY_LEFT)
-            speed_x = 0;
-        if (key == GLFW_KEY_RIGHT)
-            speed_x = 0;
-        if (key == GLFW_KEY_UP)
-            speed_y = 0;
-        if (key == GLFW_KEY_DOWN)
-            speed_y = 0;
-        if (key == GLFW_KEY_Z)
-            zoom_speed = 0;
-        if (key == GLFW_KEY_X)
-            zoom_speed = 0;
-    }
 }
 
 void windowResizeCallback(GLFWwindow *window, int width, int height)
@@ -137,11 +100,9 @@ void initOpenGLProgram(GLFWwindow *window)
     glClearColor(0, 0, 0, 1);
     glEnable(GL_DEPTH_TEST);
     glfwSetWindowSizeCallback(window, windowResizeCallback);
-    glfwSetKeyCallback(window, keyCallback);
     glEnable(GL_MULTISAMPLE);
 
-    camera = new Camera(glm::vec3(0,0,0), glm::vec3(0,0,1));
-
+    camera = new Camera(glm::vec3(0,0,0), glm::vec3(0,0,1), glm::vec3(1,0,0));
     sp = new ShaderProgram("./res/shaders/v_simplest.glsl", NULL, "./res/shaders/f_simplest.glsl");
 
     objl::Loader Loader;
@@ -150,6 +111,8 @@ void initOpenGLProgram(GLFWwindow *window)
         fprintf(stderr, "Nie można wczytać siatki obiektów.\n");
         exit(EXIT_FAILURE);
     }
+
+
 
     tex0 = new Texture("./res/textures/chess/TableroDiffuse02.png", "textureMap0");
     //tex1 = new Texture("./res/textures/chess/Tableroambient.png", "textureMap1");
@@ -171,7 +134,7 @@ void freeOpenGLProgram(GLFWwindow *window)
 {
 }
 
-void drawScene(GLFWwindow *window, float angle_x, float angle_y, float zoom)
+void drawScene(GLFWwindow *window)
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -180,11 +143,8 @@ void drawScene(GLFWwindow *window, float angle_x, float angle_y, float zoom)
     glm::mat4 P = glm::perspective(50.0f * PI / 180.0f, aspectRatio, 0.01f, 50.0f);
 
     glm::mat4 M = glm::mat4(1.0f);
-    M = glm::rotate(M, angle_y, glm::vec3(1.0f, 0.0f, 0.0f)); 
-    M = glm::rotate(M, angle_x, glm::vec3(0.0f, 1.0f, 0.0f)); 
 
     sp->use(); 
-
     glUniformMatrix4fv(sp->u("P"), 1, false, glm::value_ptr(P));
     glUniformMatrix4fv(sp->u("V"), 1, false, glm::value_ptr(V));
 
@@ -212,6 +172,7 @@ int main(void)
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     window = glfwCreateWindow(500, 500, "OpenGL", NULL, NULL);
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
 
     if (!window)
     {
@@ -231,10 +192,6 @@ int main(void)
 
         initOpenGLProgram(window);
 
-        double angle_x = 0;
-        double angle_y = 0;
-        double zoom = 1;
-
         //Główna pętla
         glUseProgram(0);
         glBindVertexArray(0);
@@ -243,9 +200,10 @@ int main(void)
         glfwSetTime(0);
         while (!glfwWindowShouldClose(window))
         {
+            camera->CameraMouseCallback(window);
             camera->CameraKeyCallback(window);
             glfwSetTime(0);
-            drawScene(window, angle_x, angle_y, zoom);
+            drawScene(window);
             glfwPollEvents();
         }
 

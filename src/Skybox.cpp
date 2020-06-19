@@ -23,8 +23,8 @@ void Skybox::GenerateTexture()
     std::vector<const char*> faces = {
         "./res/textures/skybox/right.png",
         "./res/textures/skybox/left.png",
-        "./res/textures/skybox/top.png",
         "./res/textures/skybox/bottom.png",
+        "./res/textures/skybox/top.png",
         "./res/textures/skybox/front.png",
         "./res/textures/skybox/back.png",
     };
