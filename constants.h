@@ -19,6 +19,7 @@ Place, Fifth Floor, Boston, MA  02110 - 1301  USA
 
 #ifndef CONSTANTS_H
 #define CONSTANTS_H
+#include <string>
 
 const float PI = 3.141592653589793f;
 const float MAX_DISTANCE = 10.0f;
@@ -26,5 +27,6 @@ const float CAMERA_KEY_SPEED = 1.0f;
 const float CAMERA_MOUSE_SPEED = 0.75f;
 const float BOARD_CORNER = 0.289;
 const float FIELD_SIZE = BOARD_CORNER * 2 / 7;
+const std::string INPUT_FILE= "game.txt";
 
 #endif

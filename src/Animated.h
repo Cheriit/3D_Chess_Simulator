@@ -12,7 +12,8 @@ private:
 public:
     Animated(glm::vec3 Position, glm::vec3 Rotation, VertexArray* VAO, ElementBuffer* EBO, ShaderProgram* SP);
     ~Animated();
-    Animated* Duplicate();
+    void animate();
+    bool isAnimationInProgress();
 };
 
 #endif

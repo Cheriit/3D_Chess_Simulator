@@ -27,6 +27,7 @@ Place, Fifth Floor, Boston, MA  02110 - 1301  USA
 #include "vendor/OBJ_Loader/OBJ_Loader.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <fstream>
 
 #include "../constants.h"
 #include "ShaderProgram.h"
@@ -52,6 +53,8 @@ Drawable *board = 0;
 Animated *piece[8][8] = {nullptr};
 
 Camera *camera;
+
+std::ifstream inputStream;
 
 void error_callback(int error, const char *description) {
     fputs(description, stderr);
@@ -182,12 +185,31 @@ void initOpenGLProgram(GLFWwindow *window) {
     }
 
     skybox = new Skybox();
+
+    inputStream.open(INPUT_FILE);
 }
 
 void freeOpenGLProgram(GLFWwindow *window) {
 }
 
-void drawScene(GLFWwindow *window) {
+std::vector<int> nextMove(std::vector<int> move) {
+    for (int i = 0; i < 8; i++) {
+        for (int j = 0; j < 8; j++) {
+            if (piece[i][j] != nullptr && piece[i][j]->isAnimationInProgress()) {
+                return move;
+            }
+        }
+    }
+    std::string data;
+    getline(inputStream, data);
+    move[0] = data[0] - 'A';
+    move[1] = data[1] - '0';
+    move[2] = data[3] - 'A';
+    move[3] = data[4] - '0';
+    return move;
+}
+
+void drawScene(GLFWwindow *window, std::vector<int> move) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glm::mat4 V = camera->GetCameraMatrix();
@@ -216,6 +238,7 @@ void drawScene(GLFWwindow *window) {
 }
 
 int main(void) {
+
     GLFWwindow *window;
     glfwSetErrorCallback(error_callback);
 
@@ -254,11 +277,13 @@ int main(void) {
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
         glfwSetTime(0);
+        std::vector<int> move(4, -1);
         while (!glfwWindowShouldClose(window)) {
             camera->CameraMouseCallback(window);
             camera->CameraKeyCallback(window);
             glfwSetTime(0);
-            drawScene(window);
+            move = nextMove(move);
+            drawScene(window, move);
             glfwPollEvents();
         }
 

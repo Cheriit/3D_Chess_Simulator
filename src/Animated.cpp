@@ -13,12 +13,10 @@ Animated::~Animated()
 	Drawable::~Drawable();
 }
 
-Animated* Animated::Duplicate()
-{
-    Animated* duplicate = new Animated(GetPosition(), GetRotation(), VAO, EBO, SP);
-    //for (int i = 0; i < Tex.size(); i++)
-    //{
-    //    duplicate->PushTexture(Tex[i]);
-    //}
-    return duplicate;
+void Animated::animate(){
+
+}
+
+bool Animated::isAnimationInProgress(){
+    return is_animation_in_progress;
 }
