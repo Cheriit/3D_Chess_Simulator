@@ -123,65 +123,65 @@ void initOpenGLProgram(GLFWwindow *window) {
     // generate bishops
     processMesh(Loader.LoadedMeshes[1]);
     for (int i = 0; i < 2; i++) {
-        piece[0][2 + 3 * i] = new Animated(glm::vec3(-BOARD_CORNER + (2 + 3 * i) * FIELD_SIZE, 0, BOARD_CORNER),
+        piece[2 + 3 * i][0] = new Animated(glm::vec3(-BOARD_CORNER + (2 + 3 * i) * FIELD_SIZE, 0, BOARD_CORNER),
                                            glm::vec3(0, 0, 0), VAO, EBO, sp);
-        piece[0][2 + 3 * i]->PushTexture(tex1);
-        piece[7][2 + 3 * i] = new Animated(glm::vec3(-BOARD_CORNER + (2 + 3 * i) * FIELD_SIZE, 0, -BOARD_CORNER),
+        piece[2 + 3 * i][0]->PushTexture(tex1);
+        piece[2 + 3 * i][7] = new Animated(glm::vec3(-BOARD_CORNER + (2 + 3 * i) * FIELD_SIZE, 0, -BOARD_CORNER),
                                            glm::vec3(0, 0, 0), VAO, EBO, sp);
-        piece[7][2 + 3 * i]->PushTexture(tex2);
+        piece[2 + 3 * i][7]->PushTexture(tex2);
     }
 
     // generate rooks
     processMesh(Loader.LoadedMeshes[2]);
     for (int i = 0; i < 2; i++) {
-        piece[0][7 * i] = new Animated(glm::vec3(-BOARD_CORNER + 7 * i * FIELD_SIZE, 0, BOARD_CORNER),
+        piece[7 * i][0] = new Animated(glm::vec3(-BOARD_CORNER + 7 * i * FIELD_SIZE, 0, BOARD_CORNER),
                                        glm::vec3(0, 0, 0), VAO, EBO, sp);
-        piece[0][7 * i]->PushTexture(tex1);
-        piece[7][7 * i] = new Animated(glm::vec3(-BOARD_CORNER + 7 * i * FIELD_SIZE, 0, -BOARD_CORNER),
+        piece[7 * i][0]->PushTexture(tex1);
+        piece[7 * i][7] = new Animated(glm::vec3(-BOARD_CORNER + 7 * i * FIELD_SIZE, 0, -BOARD_CORNER),
                                        glm::vec3(0, 0, 0), VAO, EBO, sp);
-        piece[7][7 * i]->PushTexture(tex2);
+        piece[7 * i][7]->PushTexture(tex2);
     }
 
     // generate knights
     processMesh(Loader.LoadedMeshes[3]);
     for (int i = 0; i < 2; i++) {
-        piece[0][1 + 5 * i] = new Animated(glm::vec3(-BOARD_CORNER + (1 + 5 * i) * FIELD_SIZE, 0, BOARD_CORNER),
+        piece[1 + 5 * i][0] = new Animated(glm::vec3(-BOARD_CORNER + (1 + 5 * i) * FIELD_SIZE, 0, BOARD_CORNER),
                                            glm::vec3(0, 0, 0), VAO, EBO, sp);
-        piece[0][1 + 5 * i]->PushTexture(tex1);
-        piece[7][1 + 5 * i] = new Animated(glm::vec3(-BOARD_CORNER + (1 + 5 * i) * FIELD_SIZE, 0, -BOARD_CORNER),
+        piece[1 + 5 * i][0]->PushTexture(tex1);
+        piece[1 + 5 * i][7] = new Animated(glm::vec3(-BOARD_CORNER + (1 + 5 * i) * FIELD_SIZE, 0, -BOARD_CORNER),
                                            glm::vec3(0, 0, 0), VAO, EBO, sp);
-        piece[7][1 + 5 * i]->PushTexture(tex2);
+        piece[1 + 5 * i][7]->PushTexture(tex2);
     }
 
     // generate queens
     processMesh(Loader.LoadedMeshes[4]);
 
-    piece[0][3] = new Animated(glm::vec3(-BOARD_CORNER + 3 * FIELD_SIZE, 0, BOARD_CORNER),
+    piece[3][0] = new Animated(glm::vec3(-BOARD_CORNER + 3 * FIELD_SIZE, 0, BOARD_CORNER),
                                glm::vec3(0, 0, 0), VAO, EBO, sp);
-    piece[0][3]->PushTexture(tex1);
-    piece[7][3] = new Animated(glm::vec3(-BOARD_CORNER + 3 * FIELD_SIZE, 0, -BOARD_CORNER),
+    piece[3][0]->PushTexture(tex1);
+    piece[3][7]= new Animated(glm::vec3(-BOARD_CORNER + 3 * FIELD_SIZE, 0, -BOARD_CORNER),
                                glm::vec3(0, 0, 0), VAO, EBO, sp);
-    piece[7][3]->PushTexture(tex2);
+    piece[3][7]->PushTexture(tex2);
 
     //generate kings
     processMesh(Loader.LoadedMeshes[5]);
 
-    piece[0][4] = new Animated(glm::vec3(-BOARD_CORNER + 4 * FIELD_SIZE, 0, BOARD_CORNER),
+    piece[4][0] = new Animated(glm::vec3(-BOARD_CORNER + 4 * FIELD_SIZE, 0, BOARD_CORNER),
                                glm::vec3(0, 0, 0), VAO, EBO, sp);
-    piece[0][4]->PushTexture(tex1);
-    piece[7][4] = new Animated(glm::vec3(-BOARD_CORNER + 4 * FIELD_SIZE, 0, -BOARD_CORNER),
+    piece[4][0]->PushTexture(tex1);
+    piece[4][7] = new Animated(glm::vec3(-BOARD_CORNER + 4 * FIELD_SIZE, 0, -BOARD_CORNER),
                                glm::vec3(0, 0, 0), VAO, EBO, sp);
-    piece[7][4]->PushTexture(tex2);
+    piece[4][7]->PushTexture(tex2);
 
     // generate pawns
     processMesh(Loader.LoadedMeshes[6]);
     for (int i = 0; i < 8; i++) {
-        piece[1][i] = new Animated(glm::vec3(-BOARD_CORNER + FIELD_SIZE * i, 0, BOARD_CORNER - FIELD_SIZE),
+        piece[i][1] = new Animated(glm::vec3(-BOARD_CORNER + FIELD_SIZE * i, 0, BOARD_CORNER - FIELD_SIZE),
                                    glm::vec3(0, 0, 0), VAO, EBO, sp);
-        piece[1][i]->PushTexture(tex1);
-        piece[6][i] = new Animated(glm::vec3(-BOARD_CORNER + FIELD_SIZE * i, 0, -BOARD_CORNER + FIELD_SIZE),
+        piece[i][1]->PushTexture(tex1);
+        piece[i][6] = new Animated(glm::vec3(-BOARD_CORNER + FIELD_SIZE * i, 0, -BOARD_CORNER + FIELD_SIZE),
                                    glm::vec3(0, 0, 0), VAO, EBO, sp);
-        piece[6][i]->PushTexture(tex2);
+        piece[i][6]->PushTexture(tex2);
     }
 
     skybox = new Skybox();
