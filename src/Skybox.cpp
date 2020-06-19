@@ -1,5 +1,5 @@
 #include "Skybox.h"
-#include "stb_image/stb_image.h"
+#include "vendor/stb_image/stb_image.h"
 #include "../res/models/skybox.h"
 
 Skybox::Skybox()

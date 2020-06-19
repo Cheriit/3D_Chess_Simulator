@@ -1,5 +1,5 @@
 #include "Texture.h"
-#include "stb_image/stb_image.h"
+#include "vendor/stb_image/stb_image.h"
 
 Texture::Texture(const char* filename, const char* uniform_name)
     : uniform_name(uniform_name)

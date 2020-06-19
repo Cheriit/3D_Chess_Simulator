@@ -24,7 +24,7 @@ Place, Fifth Floor, Boston, MA  02110 - 1301  USA
 #include "vendor/glm/glm.hpp"
 #include "vendor/glm/gtc/type_ptr.hpp"
 #include "vendor/glm/gtc/matrix_transform.hpp"
-#include "OBJ_Loader/OBJ_Loader.h"
+#include "vendor/OBJ_Loader/OBJ_Loader.h"
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -33,45 +33,42 @@ Place, Fifth Floor, Boston, MA  02110 - 1301  USA
 #include "Animated.h"
 #include "Texture.h"
 #include "Skybox.h"
-#include "Board.h"
+#include "Drawable.h"
 #include "Camera.h"
 
 float aspectRatio = 1;
-ShaderProgram*sp;
+ShaderProgram *sp;
 
 Texture *tex0;
 Texture *tex1;
+Texture *tex2;
 
-VertexArray* VAO;
-ElementBuffer* EBO;
+VertexArray *VAO;
+ElementBuffer *EBO;
 
-Skybox* skybox;
+Skybox *skybox;
 
-Board* object = 0;
-Animated* object2 = 0;
+Drawable *board = 0;
+Animated *piece[8][8] = {nullptr};
 
-Camera* camera;
+Camera *camera;
 
-void error_callback(int error, const char *description)
-{
+void error_callback(int error, const char *description) {
     fputs(description, stderr);
 }
 
-void windowResizeCallback(GLFWwindow *window, int width, int height)
-{
+void windowResizeCallback(GLFWwindow *window, int width, int height) {
     if (height == 0)
         return;
-    aspectRatio = (float)width / (float)height;
+    aspectRatio = (float) width / (float) height;
     glViewport(0, 0, width, height);
 }
 
-void processMesh(objl::Mesh Mesh)
-{
+void processMesh(objl::Mesh Mesh) {
     int vertexCount = Mesh.Vertices.size();
     std::vector<float> vertices;
     objl::Vertex vertex;
-    for (int i = 0; i < vertexCount; i++)
-    {
+    for (int i = 0; i < vertexCount; i++) {
         vertex = Mesh.Vertices[i];
         vertices.push_back(vertex.Position.X);
         vertices.push_back(vertex.Position.Y);
@@ -87,7 +84,7 @@ void processMesh(objl::Mesh Mesh)
 
     VAO = new VertexArray();
     VAO->Bind();
-    VertexBuffer* VBO = new VertexBuffer(vertices.data(), vertexCount * 8);
+    VertexBuffer *VBO = new VertexBuffer(vertices.data(), vertexCount * 8);
     VAO->AddLayout(*VBO, 0, 3, 8, 0);
     VAO->AddLayout(*VBO, 1, 3, 8, 3);
     VAO->AddLayout(*VBO, 2, 2, 8, 6);
@@ -95,47 +92,102 @@ void processMesh(objl::Mesh Mesh)
     EBO = new ElementBuffer(Mesh.Indices.data(), Mesh.Indices.size());
 }
 
-void initOpenGLProgram(GLFWwindow *window)
-{
+void initOpenGLProgram(GLFWwindow *window) {
     glClearColor(0, 0, 0, 1);
     glEnable(GL_DEPTH_TEST);
     glfwSetWindowSizeCallback(window, windowResizeCallback);
     glEnable(GL_MULTISAMPLE);
 
-    camera = new Camera(glm::vec3(0,0,0), glm::vec3(0,0,1), glm::vec3(1,0,0));
+    camera = new Camera(glm::vec3(0, 0, 0), glm::vec3(0, 0, 1), glm::vec3(1, 0, 0));
     sp = new ShaderProgram("./res/shaders/v_simplest.glsl", NULL, "./res/shaders/f_simplest.glsl");
 
     objl::Loader Loader;
-    if (!Loader.LoadFile("./res/models/PiezasAjedrez.obj"))
-    {
+    if (!Loader.LoadFile("./res/models/PiezasAjedrez.obj")) {
         fprintf(stderr, "Nie można wczytać siatki obiektów.\n");
         exit(EXIT_FAILURE);
     }
 
 
-
     tex0 = new Texture("./res/textures/chess/TableroDiffuse02.png", "textureMap0");
-    //tex1 = new Texture("./res/textures/chess/Tableroambient.png", "textureMap1");
-    tex1 = new Texture("./res/textures/chess/PiezasAjedrezDiffuseMarmol.png", "textureMap0");
+    tex1 = new Texture("./res/textures/chess/Tableroambient.png", "textureMap1");
+    //tex1 = new Texture("./res/textures/chess/PiezasAjedrezDiffuseMarmol.png", "textureMap0");
+    tex2 = new Texture("./res/textures/chess/PiezasAjedrezDiffuseMarmolBlack.png", "textureMap0");
 
     processMesh(Loader.LoadedMeshes[0]);
-    object = new Board(VAO, EBO, sp);
-    object->PushTexture(tex0);
+    board = new Drawable(VAO, EBO, sp);
+    board->PushTexture(tex0);
 
+    // generate bishops
     processMesh(Loader.LoadedMeshes[1]);
-    object2 = new Animated(glm::vec3(0,0,0), glm::vec3(0,0,0), VAO, EBO, sp);
-    object2->PushTexture(tex1);
-    //object->PushTexture(tex1);
+    for (int i = 0; i < 2; i++) {
+        piece[0][2 + 3 * i] = new Animated(glm::vec3(-BOARD_CORNER + (2 + 3 * i) * FIELD_SIZE, 0, BOARD_CORNER),
+                                           glm::vec3(0, 0, 0), VAO, EBO, sp);
+        piece[0][2 + 3 * i]->PushTexture(tex1);
+        piece[7][2 + 3 * i] = new Animated(glm::vec3(-BOARD_CORNER + (2 + 3 * i) * FIELD_SIZE, 0, -BOARD_CORNER),
+                                           glm::vec3(0, 0, 0), VAO, EBO, sp);
+        piece[7][2 + 3 * i]->PushTexture(tex2);
+    }
+
+    // generate rooks
+    processMesh(Loader.LoadedMeshes[2]);
+    for (int i = 0; i < 2; i++) {
+        piece[0][7 * i] = new Animated(glm::vec3(-BOARD_CORNER + 7 * i * FIELD_SIZE, 0, BOARD_CORNER),
+                                       glm::vec3(0, 0, 0), VAO, EBO, sp);
+        piece[0][7 * i]->PushTexture(tex1);
+        piece[7][7 * i] = new Animated(glm::vec3(-BOARD_CORNER + 7 * i * FIELD_SIZE, 0, -BOARD_CORNER),
+                                       glm::vec3(0, 0, 0), VAO, EBO, sp);
+        piece[7][7 * i]->PushTexture(tex2);
+    }
+
+    // generate knights
+    processMesh(Loader.LoadedMeshes[3]);
+    for (int i = 0; i < 2; i++) {
+        piece[0][1 + 5 * i] = new Animated(glm::vec3(-BOARD_CORNER + (1 + 5 * i) * FIELD_SIZE, 0, BOARD_CORNER),
+                                           glm::vec3(0, 0, 0), VAO, EBO, sp);
+        piece[0][1 + 5 * i]->PushTexture(tex1);
+        piece[7][1 + 5 * i] = new Animated(glm::vec3(-BOARD_CORNER + (1 + 5 * i) * FIELD_SIZE, 0, -BOARD_CORNER),
+                                           glm::vec3(0, 0, 0), VAO, EBO, sp);
+        piece[7][1 + 5 * i]->PushTexture(tex2);
+    }
+
+    // generate queens
+    processMesh(Loader.LoadedMeshes[4]);
+
+    piece[0][3] = new Animated(glm::vec3(-BOARD_CORNER + 3 * FIELD_SIZE, 0, BOARD_CORNER),
+                               glm::vec3(0, 0, 0), VAO, EBO, sp);
+    piece[0][3]->PushTexture(tex1);
+    piece[7][3] = new Animated(glm::vec3(-BOARD_CORNER + 3 * FIELD_SIZE, 0, -BOARD_CORNER),
+                               glm::vec3(0, 0, 0), VAO, EBO, sp);
+    piece[7][3]->PushTexture(tex2);
+
+    //generate kings
+    processMesh(Loader.LoadedMeshes[5]);
+
+    piece[0][4] = new Animated(glm::vec3(-BOARD_CORNER + 4 * FIELD_SIZE, 0, BOARD_CORNER),
+                               glm::vec3(0, 0, 0), VAO, EBO, sp);
+    piece[0][4]->PushTexture(tex1);
+    piece[7][4] = new Animated(glm::vec3(-BOARD_CORNER + 4 * FIELD_SIZE, 0, -BOARD_CORNER),
+                               glm::vec3(0, 0, 0), VAO, EBO, sp);
+    piece[7][4]->PushTexture(tex2);
+
+    // generate pawns
+    processMesh(Loader.LoadedMeshes[6]);
+    for (int i = 0; i < 8; i++) {
+        piece[1][i] = new Animated(glm::vec3(-BOARD_CORNER + FIELD_SIZE * i, 0, BOARD_CORNER - FIELD_SIZE),
+                                   glm::vec3(0, 0, 0), VAO, EBO, sp);
+        piece[1][i]->PushTexture(tex1);
+        piece[6][i] = new Animated(glm::vec3(-BOARD_CORNER + FIELD_SIZE * i, 0, -BOARD_CORNER + FIELD_SIZE),
+                                   glm::vec3(0, 0, 0), VAO, EBO, sp);
+        piece[6][i]->PushTexture(tex2);
+    }
 
     skybox = new Skybox();
 }
 
-void freeOpenGLProgram(GLFWwindow *window)
-{
+void freeOpenGLProgram(GLFWwindow *window) {
 }
 
-void drawScene(GLFWwindow *window)
-{
+void drawScene(GLFWwindow *window) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glm::mat4 V = camera->GetCameraMatrix();
@@ -144,24 +196,30 @@ void drawScene(GLFWwindow *window)
 
     glm::mat4 M = glm::mat4(1.0f);
 
-    sp->use(); 
+    sp->use();
     glUniformMatrix4fv(sp->u("P"), 1, false, glm::value_ptr(P));
     glUniformMatrix4fv(sp->u("V"), 1, false, glm::value_ptr(V));
 
-    object->Draw(M);
+    board->Draw(M);
     M = glm::translate(M, glm::vec3(0, 0.025, 0));
-    object2->Draw(M);
+
+    for (int i = 0; i < 8; i++) {
+        for (int j = 0; j < 8; j++) {
+            if (piece[i][j] != nullptr) {
+                piece[i][j]->Draw(M);
+            }
+        }
+    }
+
     skybox->Draw(glm::mat4(glm::mat3(V)), P);
     glfwSwapBuffers(window);
 }
 
-int main(void)
-{
-    GLFWwindow* window;
+int main(void) {
+    GLFWwindow *window;
     glfwSetErrorCallback(error_callback);
 
-    if (!glfwInit())
-    {
+    if (!glfwInit()) {
         fprintf(stderr, "Nie można zainicjować GLFW.\n");
         exit(EXIT_FAILURE);
     }
@@ -174,18 +232,16 @@ int main(void)
     window = glfwCreateWindow(500, 500, "OpenGL", NULL, NULL);
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
 
-    if (!window)
-    {
+    if (!window) {
         fprintf(stderr, "Nie można utworzyć okna.\n");
         glfwTerminate();
         exit(EXIT_FAILURE);
     }
 
-    glfwMakeContextCurrent(window);         
+    glfwMakeContextCurrent(window);
     glfwSwapInterval(1);
     {
-        if (glewInit() != GLEW_OK)
-        {
+        if (glewInit() != GLEW_OK) {
             fprintf(stderr, "Nie można zainicjować GLEW.\n");
             exit(EXIT_FAILURE);
         }
@@ -198,8 +254,7 @@ int main(void)
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
         glfwSetTime(0);
-        while (!glfwWindowShouldClose(window))
-        {
+        while (!glfwWindowShouldClose(window)) {
             camera->CameraMouseCallback(window);
             camera->CameraKeyCallback(window);
             glfwSetTime(0);
@@ -209,7 +264,7 @@ int main(void)
 
         freeOpenGLProgram(window);
         glfwDestroyWindow(window);
-}
+    }
     glfwTerminate();
     exit(EXIT_SUCCESS);
 }
