@@ -21,5 +21,8 @@ Place, Fifth Floor, Boston, MA  02110 - 1301  USA
 #define CONSTANTS_H
 
 const float PI = 3.141592653589793f;
+const float MAX_DISTANCE = 10.0f;
+const float CAMERA_MOVEMENT_SPEED = 1.0f;
+const float CAMERA_ROTATION_SPEED = 1.0f;
 
 #endif

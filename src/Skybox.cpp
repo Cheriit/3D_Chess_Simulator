@@ -67,8 +67,8 @@ void Skybox::Draw(glm::mat4 V, glm::mat4 P)
 
     VAO->Bind();
 
-    GLCall(glUniform1i(SP->u("skybox"), 0));
-    GLCall(glActiveTexture(GL_TEXTURE0))
+    glUniform1i(SP->u("skybox"), 0);
+    glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_CUBE_MAP, Tex);
 
     glDrawArrays(GL_TRIANGLES, 0, 36);

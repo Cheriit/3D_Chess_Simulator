@@ -12,11 +12,11 @@ VertexArray::~VertexArray()
 
 void VertexArray::AddLayout(VertexBuffer& VBO, unsigned int index, unsigned int count, unsigned int stride, unsigned int offset)
 {
-	GLCall(Bind());
-	GLCall(VBO.Bind());
-	GLCall(glEnableVertexAttribArray(index));
-	GLCall(glVertexAttribPointer(index, count, GL_FLOAT, false, stride*sizeof(float), (const void*) (offset*sizeof(float))));
-	GLCall(Unbind());
+	Bind();
+	VBO.Bind();
+	glEnableVertexAttribArray(index);
+	glVertexAttribPointer(index, count, GL_FLOAT, false, stride*sizeof(float), (const void*) (offset*sizeof(float)));
+	Unbind();
 }
 
 void VertexArray::Bind()

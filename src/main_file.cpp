@@ -21,24 +21,26 @@ Place, Fifth Floor, Boston, MA  02110 - 1301  USA
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
-#include "glm/glm.hpp"
-#include "glm/gtc/type_ptr.hpp"
-#include "glm/gtc/matrix_transform.hpp"
+#include "vendor/glm/glm.hpp"
+#include "vendor/glm/gtc/type_ptr.hpp"
+#include "vendor/glm/gtc/matrix_transform.hpp"
 #include "OBJ_Loader/OBJ_Loader.h"
 #include <stdlib.h>
 #include <stdio.h>
 
 #include "../constants.h"
 #include "ShaderProgram.h"
-#include "Drawable.h"
+#include "Animated.h"
 #include "Texture.h"
 #include "Skybox.h"
+#include "Board.h"
+#include "Camera.h"
 
 float speed_x = 0;
 float speed_y = 0;
 float aspectRatio = 1;
 float zoom_speed = 0;
-ShaderProgram *sp;
+ShaderProgram*sp;
 
 Texture *tex0;
 Texture *tex1;
@@ -48,8 +50,10 @@ ElementBuffer* EBO;
 
 Skybox* skybox;
 
-Drawable* object = 0;
-Drawable* object2 = 0;
+Board* object = 0;
+Animated* object2 = 0;
+
+Camera* camera;
 
 void error_callback(int error, const char *description)
 {
@@ -118,14 +122,14 @@ void processMesh(objl::Mesh Mesh)
         vertices.push_back(vertex.TextureCoordinate.Y);
     }
 
-    GLCall(VAO = new VertexArray());
+    VAO = new VertexArray();
     VAO->Bind();
-    GLCall(VertexBuffer* VBO = new VertexBuffer(vertices.data(), vertexCount * 8));
-    GLCall(VAO->AddLayout(*VBO, 0, 3, 8, 0));
-    GLCall(VAO->AddLayout(*VBO, 1, 3, 8, 3));
-    GLCall(VAO->AddLayout(*VBO, 2, 2, 8, 6));
+    VertexBuffer* VBO = new VertexBuffer(vertices.data(), vertexCount * 8);
+    VAO->AddLayout(*VBO, 0, 3, 8, 0);
+    VAO->AddLayout(*VBO, 1, 3, 8, 3);
+    VAO->AddLayout(*VBO, 2, 2, 8, 6);
 
-    GLCall(EBO = new ElementBuffer(Mesh.Indices.data(), Mesh.Indices.size()));
+    EBO = new ElementBuffer(Mesh.Indices.data(), Mesh.Indices.size());
 }
 
 void initOpenGLProgram(GLFWwindow *window)
@@ -134,9 +138,9 @@ void initOpenGLProgram(GLFWwindow *window)
     glEnable(GL_DEPTH_TEST);
     glfwSetWindowSizeCallback(window, windowResizeCallback);
     glfwSetKeyCallback(window, keyCallback);
-    //glEnable(GL_BLEND);
-    //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_CONSTANT_ALPHA);
     glEnable(GL_MULTISAMPLE);
+
+    camera = new Camera(glm::vec3(0,0,0), glm::vec3(0,0,1));
 
     sp = new ShaderProgram("./res/shaders/v_simplest.glsl", NULL, "./res/shaders/f_simplest.glsl");
 
@@ -152,15 +156,15 @@ void initOpenGLProgram(GLFWwindow *window)
     tex1 = new Texture("./res/textures/chess/PiezasAjedrezDiffuseMarmol.png", "textureMap0");
 
     processMesh(Loader.LoadedMeshes[0]);
-    object = new Drawable(VAO, EBO, sp);
+    object = new Board(VAO, EBO, sp);
     object->PushTexture(tex0);
 
     processMesh(Loader.LoadedMeshes[1]);
-    object2 = new Drawable(VAO, EBO, sp);
+    object2 = new Animated(glm::vec3(0,0,0), glm::vec3(0,0,0), VAO, EBO, sp);
     object2->PushTexture(tex1);
     //object->PushTexture(tex1);
 
-    GLCall(skybox = new Skybox());
+    skybox = new Skybox();
 }
 
 void freeOpenGLProgram(GLFWwindow *window)
@@ -171,11 +175,7 @@ void drawScene(GLFWwindow *window, float angle_x, float angle_y, float zoom)
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    glm::mat4 V = glm::lookAt(
-        glm::vec3(0, 0, -0.5), // Pozycja
-        glm::vec3(0, 0, 0),           // Obserwowany punkt
-        glm::vec3(0.0f, 1.0f, 0.0f)   // Wektor nosa
-    );
+    glm::mat4 V = camera->GetCameraMatrix();
 
     glm::mat4 P = glm::perspective(50.0f * PI / 180.0f, aspectRatio, 0.01f, 50.0f);
 
@@ -187,11 +187,11 @@ void drawScene(GLFWwindow *window, float angle_x, float angle_y, float zoom)
 
     glUniformMatrix4fv(sp->u("P"), 1, false, glm::value_ptr(P));
     glUniformMatrix4fv(sp->u("V"), 1, false, glm::value_ptr(V));
-    glUniformMatrix4fv(sp->u("M"), 1, false, glm::value_ptr(M));
 
-    GLCall(object->Draw());
-    GLCall(object2->Draw());
-    GLCall(skybox->Draw(glm::mat4(glm::mat3(V)), P));
+    object->Draw(M);
+    M = glm::translate(M, glm::vec3(0, 0.025, 0));
+    object2->Draw(M);
+    skybox->Draw(glm::mat4(glm::mat3(V)), P);
     glfwSwapBuffers(window);
 }
 
@@ -243,9 +243,7 @@ int main(void)
         glfwSetTime(0);
         while (!glfwWindowShouldClose(window))
         {
-            angle_x += speed_x * glfwGetTime();
-            angle_y += speed_y * glfwGetTime();
-            zoom += zoom_speed * glfwGetTime();
+            camera->CameraKeyCallback(window);
             glfwSetTime(0);
             drawScene(window, angle_x, angle_y, zoom);
             glfwPollEvents();

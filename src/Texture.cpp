@@ -8,10 +8,10 @@ Texture::Texture(const char* filename, const char* uniform_name)
     int width, height, chanels;
     stbi_set_flip_vertically_on_load(1);
     stbi_uc* buffer = stbi_load(filename, &width, &height, &chanels, 4); 
-    GLCall(glActiveTexture(GL_TEXTURE0));
-    GLCall(glGenTextures(1, &id));
-    GLCall(glBindTexture(GL_TEXTURE_2D, id));
-    GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer));
+    glActiveTexture(GL_TEXTURE0);
+    glGenTextures(1, &id);
+    glBindTexture(GL_TEXTURE_2D, id);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -32,9 +32,9 @@ const char* Texture::getUniformName()
 
 void Texture::Bind(unsigned int index, unsigned int unit_id, unsigned int texture_unit)
 {
-    GLCall(glUniform1i(index, unit_id));
-    GLCall(glActiveTexture(texture_unit));
-    GLCall(glBindTexture(GL_TEXTURE_2D, id));
+    glUniform1i(index, unit_id);
+    glActiveTexture(texture_unit);
+    glBindTexture(GL_TEXTURE_2D, id);
 }
 
 void Texture::Unbind(unsigned int texture_unit)

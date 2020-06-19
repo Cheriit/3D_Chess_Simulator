@@ -3,10 +3,16 @@
 #define ANIMATED_H
 
 #include "Drawable.h"
-//TODO Figure class
-class Figure :
+
+class Animated :
     public Drawable
 {
+private:
+    bool is_animation_in_progress;
+public:
+    Animated(glm::vec3 Position, glm::vec3 Rotation, VertexArray* VAO, ElementBuffer* EBO, ShaderProgram* SP);
+    ~Animated();
+    Animated* Duplicate();
 };
 
 #endif

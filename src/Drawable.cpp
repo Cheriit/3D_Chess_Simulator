@@ -10,6 +10,8 @@ Drawable::Drawable()
 Drawable::Drawable(VertexArray* VAO, ElementBuffer* EBO, ShaderProgram* SP)
 	: VAO(VAO), EBO(EBO), SP(SP)
 {
+    Position = glm::vec3(0, 0, 0);
+    Rotation = glm::vec3(0, 0, 0);
 }
 
 Drawable::~Drawable()
@@ -26,15 +28,23 @@ bool Drawable::PushTexture(Texture *tex)
 	return is_in_vector;
 }
 
-void Drawable::Draw()
+void Drawable::Draw(glm::mat4 M)
 {
+    SP->use();
+
+    M = glm::translate(M, Position);
+    M = glm::rotate(M, Rotation.x, glm::vec3(1, 0, 0));
+    M = glm::rotate(M, Rotation.y, glm::vec3(0, 1, 0));
+    M = glm::rotate(M, Rotation.z, glm::vec3(0, 0, 1));
+    glUniformMatrix4fv(SP->u("M"), 1, false, glm::value_ptr(M));
+
     VAO->Bind();
     EBO->Bind();
     for (int i = 0; i < Tex.size(); i++)
     {
         Tex[i]->Bind(SP->u(Tex[i]->getUniformName()), i, GL_TEXTURE0+i );
     }
-    GLCall(glDrawElements(GL_TRIANGLES, EBO->getCount(), GL_UNSIGNED_INT, nullptr));
+    glDrawElements(GL_TRIANGLES, EBO->getCount(), GL_UNSIGNED_INT, nullptr);
     VAO->Unbind();
     EBO->Unbind();
     for (int i = 0; i < Tex.size(); i++)
@@ -43,12 +53,27 @@ void Drawable::Draw()
     }
 }
 
-Drawable* Drawable::duplicate()
+void Drawable::SetPosition(glm::vec3 pos)
 {
-    Drawable* duplicate = new Drawable(VAO, EBO, SP);
-    for (int i = 0; i < Tex.size(); i++)
-    {
-        duplicate->PushTexture(Tex[i]);
-    }
-    return duplicate;
+    Position = pos;
+}
+void Drawable::Move(glm::vec3 pos)
+{
+    Position = Position + pos;
+}
+glm::vec3 Drawable::GetPosition()
+{
+    return Position;
+}
+void Drawable::Rotate(glm::vec3 rot)
+{
+    Rotation = Rotation + rot;
+}
+void Drawable::SetRotation(glm::vec3 rot)
+{
+    Rotation = rot;
+}
+glm::vec3 Drawable::GetRotation()
+{
+    return Rotation;
 }
