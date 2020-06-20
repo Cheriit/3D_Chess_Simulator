@@ -159,7 +159,7 @@ void initOpenGLProgram(GLFWwindow *window) {
     piece[3][0] = new Animated(glm::vec3(-BOARD_CORNER + 3 * FIELD_SIZE, 0, BOARD_CORNER),
                                glm::vec3(0, 0, 0), VAO, EBO, sp);
     piece[3][0]->PushTexture(tex1);
-    piece[3][7]= new Animated(glm::vec3(-BOARD_CORNER + 3 * FIELD_SIZE, 0, -BOARD_CORNER),
+    piece[3][7] = new Animated(glm::vec3(-BOARD_CORNER + 3 * FIELD_SIZE, 0, -BOARD_CORNER),
                                glm::vec3(0, 0, 0), VAO, EBO, sp);
     piece[3][7]->PushTexture(tex2);
 
@@ -200,12 +200,29 @@ std::vector<int> nextMove(std::vector<int> move) {
             }
         }
     }
+
     std::string data;
     getline(inputStream, data);
-    move[0] = data[0] - 'A';
-    move[1] = data[1] - '0';
-    move[2] = data[3] - 'A';
-    move[3] = data[4] - '0';
+    move[0] = data[0];
+    if (move[0] == 'M' || move[0] == 'E') { // M(Move) / E(En passant) Piece Destination
+        move[1] = data[2] - 'A';
+        move[2] = data[3] - '0';
+        move[3] = data[5] - 'A';
+        move[4] = data[6] - '0';
+    } else if (move[0] == 'P') { //P(Promotion) Piece Mesh
+        move[1] = data[2] - 'A';
+        move[2] = data[3] - '0';
+        move[3] = data[5] - '0';
+    } else if () { //C (Castling) King Destination Rook Destination
+        move[1] = data[2] - 'A';
+        move[2] = data[3] - '0';
+        move[3] = data[5] - 'A';
+        move[4] = data[6] - '0';
+        move[5] = data[8] - 'A';
+        move[6] = data[9] - '0';
+        move[7] = data[11] - 'A';
+        move[8] = data[12] - '0';
+    }
     return move;
 }
 
@@ -277,7 +294,7 @@ int main(void) {
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
         glfwSetTime(0);
-        std::vector<int> move(4, -1);
+        std::vector<int> move(9, -1);
         while (!glfwWindowShouldClose(window)) {
             camera->CameraMouseCallback(window);
             camera->CameraKeyCallback(window);
