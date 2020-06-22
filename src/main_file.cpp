@@ -239,7 +239,15 @@ glm::vec3 destination(int x, int y, float height) {
 }
 
 glm::vec3 destinationCaptured(bool is_white) {
-    return glm::vec3(-BOARD_CORNER + FIELD_SIZE, 0, -BOARD_CORNER + FIELD_SIZE);
+    if (is_white) {
+        int x = CaptureWhitePieces.size() / 8;
+        int y = CaptureWhitePieces.size() % 8;
+        return glm::vec3(CAPTURED_WHITE + x * FIELD_SIZE, 2 * HEIGHT, -BOARD_CORNER + y * FIELD_SIZE);
+    } else {
+        int x = CaptureBlackPieces.size() / 8;
+        int y = CaptureBlackPieces.size() % 8;
+        return glm::vec3(CAPTURED_BLACK + x * FIELD_SIZE, 2 * HEIGHT, BOARD_CORNER - y * FIELD_SIZE);
+    }
 }
 
 int move(std::vector<int> action, int status) {
@@ -258,28 +266,63 @@ int move(std::vector<int> action, int status) {
 int capture(std::vector<int> action, int status, bool enPassant) {
     Animated *piece = pieces[action[1]][action[2]];
     piece->startAnimation();
+    glm::vec3 pieceDest = destination(action[3], action[4], 0);
+
+    Animated *capturedPiece;
+    glm::vec3 capturedDest;
     if (enPassant) {
-        Animated *capturedPiece = pieces[action[5]][action[6]];
+        capturedPiece = pieces[action[5]][action[6]];
         capturedPiece->startAnimation();
+        capturedDest = destinationCaptured(capturedPiece->isWhite());
     } else {
-        Animated *capturedPiece = pieces[action[3]][action[4]];
+        capturedPiece = pieces[action[3]][action[4]];
         capturedPiece->startAnimation();
+        capturedDest = destinationCaptured(capturedPiece->isWhite());
     }
-    return status;
+
+    if (firstPieceStatus) {
+        firstPieceStatus = piece->Move(pieceDest, firstPieceStatus, 0);
+    }
+    if (secondPieceStatus) {
+        secondPieceStatus = capturedPiece->Move(capturedDest, secondPieceStatus, HEIGHT);
+    }
+    if (firstPieceStatus == 0 && secondPieceStatus == 0) {
+        if (capturedPiece->isWhite()) {
+            CaptureWhitePieces.push_back(capturedPiece);
+        } else {
+            CaptureBlackPieces.push_back(capturedPiece);
+        }
+
+        if (enPassant) {
+            pieces[action[5]][action[6]] = nullptr;
+        } else {
+            pieces[action[3]][action[4]] = nullptr;
+        }
+
+        pieces[action[3]][action[4]] = piece;
+        pieces[action[1]][action[2]] = nullptr;
+        firstPieceStatus = 1;
+        secondPieceStatus = 1;
+        piece->endAnimation();
+        capturedPiece->endAnimation();
+        return 0;
+    }
+    return 1;
 }
+
 
 int promotion(std::vector<int> action, int status) {
     Animated *piece = pieces[action[1]][action[2]];
     piece->startAnimation();
 
     if (status <= 1) {
-        piece->MoveUp(2.0);
+        piece->MoveUp(1.0);
     } else if (piece->MoveDown()) {
         piece->endAnimation();
         return 0;
     }
 
-    if (piece->GetPosition().y > 2) {
+    if (piece->GetPosition().y > 1.0) {
         processMesh(Loader.LoadedMeshes[action[3]]);
         pieces[action[1]][action[2]] = new Animated(piece->GetPosition(), piece->GetRotation(), piece->isWhite(),
                                                     VAO, EBO, sp);
@@ -295,6 +338,7 @@ int promotion(std::vector<int> action, int status) {
         return 1;
     }
 }
+
 
 int castling(std::vector<int> action, int status) {
     Animated *king = pieces[action[1]][action[2]];
@@ -354,6 +398,14 @@ void drawScene(GLFWwindow *window) {
     glUniformMatrix4fv(sp->u("P"), 1, false, glm::value_ptr(P));
     glUniformMatrix4fv(sp->u("V"), 1, false, glm::value_ptr(V));
 
+    for (int i = 0; i < CaptureWhitePieces.size(); i++) {
+        CaptureWhitePieces[i]->Draw(M);
+    }
+
+    for (int i = 0; i < CaptureBlackPieces.size(); i++) {
+        CaptureBlackPieces[i]->Draw(M);
+    }
+
     board->Draw(M);
     M = glm::translate(M, glm::vec3(0, 0.025, 0));
 
@@ -363,14 +415,6 @@ void drawScene(GLFWwindow *window) {
                 pieces[i][j]->Draw(M);
             }
         }
-    }
-
-    for (int i = 0; i < CaptureWhitePieces.size(); i++) {
-        CaptureWhitePieces[i]->Draw(M);
-    }
-
-    for (int i = 0; i < CaptureBlackPieces.size(); i++) {
-        CaptureBlackPieces[i]->Draw(M);
     }
 
     skybox->Draw(glm::mat4(glm::mat3(V)), P);

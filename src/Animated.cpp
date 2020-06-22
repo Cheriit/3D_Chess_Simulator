@@ -45,7 +45,7 @@ int Animated::Move(glm::vec3 destination, int phase, float height) {
         } else {
             return 2;
         }
-    } else if (phase == 3) {
+    } else {
         if (MoveDown()) {
             endAnimation();
             return 0;
