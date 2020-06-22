@@ -55,6 +55,8 @@ Drawable *board = 0;
 Animated *pieces[8][8] = {nullptr};
 std::vector<Animated *> CaptureWhitePieces;
 std::vector<Animated *> CaptureBlackPieces;
+int firstPieceStatus = 0;
+int secondPieceStatus = 0;
 
 Camera *camera;
 
@@ -276,7 +278,7 @@ int promotion(std::vector<int> action, int status) {
         piece->endAnimation();
         return 0;
     }
-    
+
     if (piece->GetPosition().y > 2) {
         processMesh(Loader.LoadedMeshes[action[3]]);
         pieces[action[1]][action[2]] = new Animated(piece->GetPosition(), piece->GetRotation(), piece->isWhite(),
@@ -299,6 +301,23 @@ int castling(std::vector<int> action, int status) {
     king->startAnimation();
     Animated *rook = pieces[action[5]][action[6]];
     rook->startAnimation();
+    glm::vec3 kingDest = destination(action[3], action[4], 0);
+    glm::vec3 rookDest = destination(action[7], action[8], HEIGHT);
+    firstPieceStatus = king->Move(kingDest, firstPieceStatus, 0);
+    secondPieceStatus = rook->Move(rookDest, secondPieceStatus, HEIGHT);
+    if (firstPieceStatus == 0 && secondPieceStatus == 0) {
+        pieces[action[3]][action[4]] = king;
+        pieces[action[1]][action[2]] = nullptr;
+        pieces[action[7]][action[8]] = rook;
+        pieces[action[5]][action[6]] = nullptr;
+        firstPieceStatus = 0;
+        secondPieceStatus = 0;
+        king->endAnimation();
+        rook->endAnimation();
+    } else{
+        return 1;
+    }
+
     return status;
 }
 
