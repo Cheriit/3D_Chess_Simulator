@@ -1,4 +1,6 @@
 #include "Drawable.h"
+#include <GLFW/glfw3.h>
+#include "../constants.h"
 
 Drawable::Drawable() {
     VAO = nullptr;
@@ -56,6 +58,40 @@ void Drawable::SetPosition(glm::vec3 pos) {
 
 void Drawable::Move(glm::vec3 pos) {
     Position = Position + pos;
+}
+
+bool Drawable::MoveUp(float height){
+    float translation = PIECE_SPEED * glfwGetTime();
+    if (Position.y >= height) {
+        SetPosition(glm::vec3(Position.x, height, Position.z));
+        return true;
+    } else {
+        Move(glm::vec3(0, translation, 0));
+        return false;
+    }
+}
+
+bool Drawable::MoveDown(){
+    float translation = PIECE_SPEED * glfwGetTime();
+    if (Position.y <= 0.0) {
+        SetPosition(glm::vec3(Position.x, 0.0f, Position.z));
+        return true;
+    } else {
+        Move(glm::vec3(0, -translation, 0));
+        return false;
+    }
+}
+
+bool Drawable::MoveHorizontally(glm::vec3 destination){
+    float translation = PIECE_SPEED * glfwGetTime();
+    glm::vec3 direction = glm::normalize(destination - Position) * translation;
+    if (glm::length(direction) <= glm::length(destination - Position)) {
+        SetPosition(destination);
+        return true;
+    } else {
+        Move(direction);
+        return false;
+    }
 }
 
 glm::vec3 Drawable::GetPosition() {

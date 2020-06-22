@@ -9,11 +9,12 @@ class Animated :
 {
 private:
     bool is_animation_in_progress;
+    bool is_white;
 public:
-    Animated(glm::vec3 Position, glm::vec3 Rotation, VertexArray* VAO, ElementBuffer* EBO, ShaderProgram* SP);
+    Animated(glm::vec3 Position, glm::vec3 Rotation, bool white,VertexArray* VAO, ElementBuffer* EBO, ShaderProgram* SP);
     ~Animated();
-    void animate();
     bool isAnimationInProgress();
+    bool isWhite();
     void startAnimation();
     void endAnimation();
 };

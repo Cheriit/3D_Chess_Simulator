@@ -32,6 +32,9 @@ public:
 	void Draw(glm::mat4 M);
 	void SetPosition(glm::vec3 pos);
 	void Move(glm::vec3 pos);
+    bool MoveUp(float height);
+    bool MoveDown();
+    bool MoveHorizontally(glm::vec3 destination);
 	glm::vec3 GetPosition();
 	void Rotate(glm::vec3 rot);
 	void SetRotation(glm::vec3 rot);

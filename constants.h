@@ -27,7 +27,9 @@ const float CAMERA_KEY_SPEED = 1.0f;
 const float CAMERA_MOUSE_SPEED = 0.75f;
 const float BOARD_CORNER = 0.289;
 const float FIELD_SIZE = BOARD_CORNER * 2 / 7;
-const float PROMOTION_SPEED = 1000.0f;
+const float PIECE_SPEED = 1000.0f;
+const bool WHITE = true;
+const bool BLACK = false;
 const std::string INPUT_FILE= "game.txt";
 
 #endif

@@ -53,6 +53,8 @@ Skybox *skybox;
 
 Drawable *board = 0;
 Animated *pieces[8][8] = {nullptr};
+std::vector<Animated *> CaptureWhitePieces;
+std::vector<Animated *> CaptureBlackPieces;
 
 Camera *camera;
 
@@ -126,10 +128,10 @@ void initOpenGLProgram(GLFWwindow *window) {
     processMesh(Loader.LoadedMeshes[1]);
     for (int i = 0; i < 2; i++) {
         pieces[2 + 3 * i][0] = new Animated(glm::vec3(-BOARD_CORNER + (2 + 3 * i) * FIELD_SIZE, 0, BOARD_CORNER),
-                                            glm::vec3(0, 0, 0), VAO, EBO, sp);
+                                            glm::vec3(0, 0, 0), WHITE, VAO, EBO, sp);
         pieces[2 + 3 * i][0]->PushTexture(tex1);
         pieces[2 + 3 * i][7] = new Animated(glm::vec3(-BOARD_CORNER + (2 + 3 * i) * FIELD_SIZE, 0, -BOARD_CORNER),
-                                            glm::vec3(0, 0, 0), VAO, EBO, sp);
+                                            glm::vec3(0, 0, 0), BLACK, VAO, EBO, sp);
         pieces[2 + 3 * i][7]->PushTexture(tex2);
     }
 
@@ -137,10 +139,10 @@ void initOpenGLProgram(GLFWwindow *window) {
     processMesh(Loader.LoadedMeshes[2]);
     for (int i = 0; i < 2; i++) {
         pieces[7 * i][0] = new Animated(glm::vec3(-BOARD_CORNER + 7 * i * FIELD_SIZE, 0, BOARD_CORNER),
-                                        glm::vec3(0, 0, 0), VAO, EBO, sp);
+                                        glm::vec3(0, 0, 0), WHITE, VAO, EBO, sp);
         pieces[7 * i][0]->PushTexture(tex1);
         pieces[7 * i][7] = new Animated(glm::vec3(-BOARD_CORNER + 7 * i * FIELD_SIZE, 0, -BOARD_CORNER),
-                                        glm::vec3(0, 0, 0), VAO, EBO, sp);
+                                        glm::vec3(0, 0, 0), BLACK, VAO, EBO, sp);
         pieces[7 * i][7]->PushTexture(tex2);
     }
 
@@ -148,10 +150,10 @@ void initOpenGLProgram(GLFWwindow *window) {
     processMesh(Loader.LoadedMeshes[3]);
     for (int i = 0; i < 2; i++) {
         pieces[1 + 5 * i][0] = new Animated(glm::vec3(-BOARD_CORNER + (1 + 5 * i) * FIELD_SIZE, 0, BOARD_CORNER),
-                                            glm::vec3(0, 0, 0), VAO, EBO, sp);
+                                            glm::vec3(0, 0, 0), WHITE, VAO, EBO, sp);
         pieces[1 + 5 * i][0]->PushTexture(tex1);
         pieces[1 + 5 * i][7] = new Animated(glm::vec3(-BOARD_CORNER + (1 + 5 * i) * FIELD_SIZE, 0, -BOARD_CORNER),
-                                            glm::vec3(0, 0, 0), VAO, EBO, sp);
+                                            glm::vec3(0, 0, 0), BLACK, VAO, EBO, sp);
         pieces[1 + 5 * i][7]->PushTexture(tex2);
     }
 
@@ -159,30 +161,30 @@ void initOpenGLProgram(GLFWwindow *window) {
     processMesh(Loader.LoadedMeshes[4]);
 
     pieces[3][0] = new Animated(glm::vec3(-BOARD_CORNER + 3 * FIELD_SIZE, 0, BOARD_CORNER),
-                                glm::vec3(0, 0, 0), VAO, EBO, sp);
+                                glm::vec3(0, 0, 0), WHITE, VAO, EBO, sp);
     pieces[3][0]->PushTexture(tex1);
     pieces[3][7] = new Animated(glm::vec3(-BOARD_CORNER + 3 * FIELD_SIZE, 0, -BOARD_CORNER),
-                                glm::vec3(0, 0, 0), VAO, EBO, sp);
+                                glm::vec3(0, 0, 0), BLACK, VAO, EBO, sp);
     pieces[3][7]->PushTexture(tex2);
 
     //generate kings
     processMesh(Loader.LoadedMeshes[5]);
 
     pieces[4][0] = new Animated(glm::vec3(-BOARD_CORNER + 4 * FIELD_SIZE, 0, BOARD_CORNER),
-                                glm::vec3(0, 0, 0), VAO, EBO, sp);
+                                glm::vec3(0, 0, 0), WHITE, VAO, EBO, sp);
     pieces[4][0]->PushTexture(tex1);
     pieces[4][7] = new Animated(glm::vec3(-BOARD_CORNER + 4 * FIELD_SIZE, 0, -BOARD_CORNER),
-                                glm::vec3(0, 0, 0), VAO, EBO, sp);
+                                glm::vec3(0, 0, 0), BLACK, VAO, EBO, sp);
     pieces[4][7]->PushTexture(tex2);
 
     // generate pawns
     processMesh(Loader.LoadedMeshes[6]);
     for (int i = 0; i < 8; i++) {
         pieces[i][1] = new Animated(glm::vec3(-BOARD_CORNER + FIELD_SIZE * i, 0, BOARD_CORNER - FIELD_SIZE),
-                                    glm::vec3(0, 0, 0), VAO, EBO, sp);
+                                    glm::vec3(0, 0, 0), WHITE, VAO, EBO, sp);
         pieces[i][1]->PushTexture(tex1);
         pieces[i][6] = new Animated(glm::vec3(-BOARD_CORNER + FIELD_SIZE * i, 0, -BOARD_CORNER + FIELD_SIZE),
-                                    glm::vec3(0, 0, 0), VAO, EBO, sp);
+                                    glm::vec3(0, 0, 0), BLACK, VAO, EBO, sp);
         pieces[i][6]->PushTexture(tex2);
     }
 
@@ -207,58 +209,78 @@ std::vector<int> nextMove(std::vector<int> move) {
     std::string data;
     getline(inputStream, data);
     move[0] = data[0];
-    if (move[0] == 'M' || move[0] == 'E') { // M(Move) / E(En passant) Piece Destination
-        move[1] = data[2] - 'A';
-        move[2] = data[3] - '1';
+    move[1] = data[2] - 'A';
+    move[2] = data[3] - '1';
+    if (move[0] == 'M') { // M(Move) Piece Destination
         move[3] = data[5] - 'A';
         move[4] = data[6] - '1';
     } else if (move[0] == 'P') { //P(Promotion) Piece Mesh
-        move[1] = data[2] - 'A';
-        move[2] = data[3] - '1';
         move[3] = data[5] - '0';
     } else if (move[0] == 'C') { //C (Castling) King Destination Rook Destination
-        move[1] = data[2] - 'A';
-        move[2] = data[3] - '1';
         move[3] = data[5] - 'A';
         move[4] = data[6] - '1';
         move[5] = data[8] - 'A';
         move[6] = data[9] - '1';
         move[7] = data[11] - 'A';
         move[8] = data[12] - '1';
+    } else if (move[0] == 'E') { // E(En passant) Piece Destination Piece
+        move[3] = data[5] - 'A';
+        move[4] = data[6] - '1';
+        move[5] = data[8] - 'A';
+        move[6] = data[9] - '1';
     }
     return move;
 }
 
+
+int movePiece(Animated *piece, glm::vec3 destination, int phase) {
+
+    if (phase == 1) {
+
+    } else if (phase == 2) {
+
+    } else if (phase == 3) {
+
+    }
+}
+
 int promotion(std::vector<int> move, int status) {
     Animated *piece = pieces[move[1]][move[2]];
-    float translation = PROMOTION_SPEED * glfwGetTime();
     piece->startAnimation();
+
     if (status != 1) {
-        piece->Move(glm::vec3(0, translation, 0));
+        piece->MoveUp(2.0);
     } else if (status == 1) {
-        piece->Move(glm::vec3(0, -translation, 0));
+        if (piece->MoveDown()) {
+            piece->endAnimation();
+            return 0;
+        }
     }
-    fprintf(stderr, "Petla: %f\n", piece->GetPosition().y);
+
     if (piece->GetPosition().y > 2) {
-        fprintf(stderr, "Petla: 1\n");
         processMesh(Loader.LoadedMeshes[move[3]]);
-        pieces[move[1]][move[2]] = new Animated(piece->GetPosition(), piece->GetRotation(), VAO, EBO, sp);
+        pieces[move[1]][move[2]] = new Animated(piece->GetPosition(), piece->GetRotation(), piece->isWhite(),
+                                                VAO, EBO, sp);
         std::vector < Texture * > textures = piece->GetTextures();
         for (int i = 0; i < textures.size(); i++) {
             pieces[move[1]][move[2]]->PushTexture(textures[i]);
         }
         pieces[move[1]][move[2]]->startAnimation();
         return 1;
-    } else if (piece->GetPosition().y <= 0.0) {
-        piece->SetPosition(glm::vec3(piece->GetPosition().x, 0.0f, piece->GetPosition().z));
-        piece->endAnimation();
-        return 0;
-    }
-    if (status == 1) {
+    } else if (status == 1) {
         return 1;
     } else {
         return 2;
     }
+}
+
+
+int castling(std::vector<int> move, int status) {
+
+}
+
+int enPassant(std::vector<int> move, int status) {
+
 }
 
 int makeMove(std::vector<int> move, int status) {
