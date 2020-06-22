@@ -17,6 +17,7 @@ public:
     bool isWhite();
     void startAnimation();
     void endAnimation();
+    int Move(glm::vec3 destination, int phase, float height);
 };
 
 #endif

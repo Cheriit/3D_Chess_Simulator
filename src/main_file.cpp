@@ -197,99 +197,126 @@ void freeOpenGLProgram(GLFWwindow *window) {
     inputStream.close();
 }
 
-std::vector<int> nextMove(std::vector<int> move) {
+std::vector<int> nextAction(std::vector<int> action) {
     for (int i = 0; i < 8; i++) {
         for (int j = 0; j < 8; j++) {
             if (pieces[i][j] != nullptr && pieces[i][j]->isAnimationInProgress()) {
-                return move;
+                return action;
             }
         }
     }
 
     std::string data;
     getline(inputStream, data);
-    move[0] = data[0];
-    move[1] = data[2] - 'A';
-    move[2] = data[3] - '1';
-    if (move[0] == 'M') { // M(Move) Piece Destination
-        move[3] = data[5] - 'A';
-        move[4] = data[6] - '1';
-    } else if (move[0] == 'P') { //P(Promotion) Piece Mesh
-        move[3] = data[5] - '0';
-    } else if (move[0] == 'C') { //C (Castling) King Destination Rook Destination
-        move[3] = data[5] - 'A';
-        move[4] = data[6] - '1';
-        move[5] = data[8] - 'A';
-        move[6] = data[9] - '1';
-        move[7] = data[11] - 'A';
-        move[8] = data[12] - '1';
-    } else if (move[0] == 'E') { // E(En passant) Piece Destination Piece
-        move[3] = data[5] - 'A';
-        move[4] = data[6] - '1';
-        move[5] = data[8] - 'A';
-        move[6] = data[9] - '1';
+    action[0] = data[0];
+    action[1] = data[2] - 'A';
+    action[2] = data[3] - '1';
+    if (action[0] == 'M') { // M(Move) Piece Destination
+        action[3] = data[5] - 'A';
+        action[4] = data[6] - '1';
+    } else if (action[0] == 'P') { //P(Promotion) Piece Mesh
+        action[3] = data[5] - '0';
+    } else if (action[0] == 'C') { //C (Castling) King Destination Rook Destination
+        action[3] = data[5] - 'A';
+        action[4] = data[6] - '1';
+        action[5] = data[8] - 'A';
+        action[6] = data[9] - '1';
+        action[7] = data[11] - 'A';
+        action[8] = data[12] - '1';
+    } else if (action[0] == 'E') { // E(En passant) Piece Destination Piece
+        action[3] = data[5] - 'A';
+        action[4] = data[6] - '1';
+        action[5] = data[8] - 'A';
+        action[6] = data[9] - '1';
     }
-    return move;
+    return action;
 }
 
-
-int movePiece(Animated *piece, glm::vec3 destination, int phase) {
-
-    if (phase == 1) {
-
-    } else if (phase == 2) {
-
-    } else if (phase == 3) {
-
-    }
+glm::vec3 destination(int x, int y, float height) {
+    return glm::vec3(-BOARD_CORNER + x * FIELD_SIZE, height, BOARD_CORNER - y * FIELD_SIZE);
 }
 
-int promotion(std::vector<int> move, int status) {
-    Animated *piece = pieces[move[1]][move[2]];
+glm::vec3 destinationCaptured(bool is_white) {
+    return glm::vec3(-BOARD_CORNER + FIELD_SIZE, 0, -BOARD_CORNER + FIELD_SIZE);
+}
+
+int move(std::vector<int> action, int status) {
+    Animated *piece = pieces[action[1]][action[2]];
+    piece->startAnimation();
+    glm::vec3 dest = destination(action[3], action[4], HEIGHT);
+    status = piece->Move(dest, status, HEIGHT);
+    if (status == 0) {
+        pieces[action[3]][action[4]] = piece;
+        pieces[action[1]][action[2]] = nullptr;
+        piece->endAnimation();
+    }
+    return status;
+}
+
+int capture(std::vector<int> action, int status, bool enPassant) {
+    Animated *piece = pieces[action[1]][action[2]];
+    piece->startAnimation();
+    if (enPassant) {
+        Animated *capturedPiece = pieces[action[5]][action[6]];
+        capturedPiece->startAnimation();
+    } else {
+        Animated *capturedPiece = pieces[action[3]][action[4]];
+        capturedPiece->startAnimation();
+    }
+    return status;
+}
+
+int promotion(std::vector<int> action, int status) {
+    Animated *piece = pieces[action[1]][action[2]];
     piece->startAnimation();
 
-    if (status != 1) {
+    if (status <= 1) {
         piece->MoveUp(2.0);
-    } else if (status == 1) {
-        if (piece->MoveDown()) {
-            piece->endAnimation();
-            return 0;
-        }
+    } else if (piece->MoveDown()) {
+        piece->endAnimation();
+        return 0;
     }
+
 
     if (piece->GetPosition().y > 2) {
-        processMesh(Loader.LoadedMeshes[move[3]]);
-        pieces[move[1]][move[2]] = new Animated(piece->GetPosition(), piece->GetRotation(), piece->isWhite(),
-                                                VAO, EBO, sp);
+        processMesh(Loader.LoadedMeshes[action[3]]);
+        pieces[action[1]][action[2]] = new Animated(piece->GetPosition(), piece->GetRotation(), piece->isWhite(),
+                                                    VAO, EBO, sp);
         std::vector < Texture * > textures = piece->GetTextures();
         for (int i = 0; i < textures.size(); i++) {
-            pieces[move[1]][move[2]]->PushTexture(textures[i]);
+            pieces[action[1]][action[2]]->PushTexture(textures[i]);
         }
-        pieces[move[1]][move[2]]->startAnimation();
-        return 1;
-    } else if (status == 1) {
-        return 1;
-    } else {
+        pieces[action[1]][action[2]]->startAnimation();
         return 2;
+    } else if (status == 2) {
+        return 2;
+    } else {
+        return 1;
     }
 }
 
-
-int castling(std::vector<int> move, int status) {
-
+int castling(std::vector<int> action, int status) {
+    Animated *king = pieces[action[1]][action[2]];
+    king->startAnimation();
+    Animated *rook = pieces[action[5]][action[6]];
+    rook->startAnimation();
+    return status;
 }
 
-int enPassant(std::vector<int> move, int status) {
-
-}
-
-int makeMove(std::vector<int> move, int status) {
+int makeAction(std::vector<int> action, int status) {
     int newStatus;
-    if (move[0] == 'M') {
-    } else if (move[0] == 'E') {
-    } else if (move[0] == 'P') {
-        newStatus = promotion(move, status);
-    } else if (move[0] == 'C') {
+    if (action[0] == 'M') {
+        if (pieces[action[3]][action[4]] == nullptr) {
+            newStatus = move(action, status);
+        } else {
+            newStatus = capture(action, status, false);
+        }
+    } else if (action[0] == 'E') {
+        newStatus = capture(action, status, true);
+    } else if (action[0] == 'P') {
+        newStatus = promotion(action, status);
+    } else if (action[0] == 'C') {
+        newStatus = castling(action, status);
     }
     return newStatus;
 }
@@ -362,14 +389,14 @@ int main(void) {
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
         glfwSetTime(0);
-        std::vector<int> move(9, -1);
+        std::vector<int> action(9, -1);
         int status = 0;
         while (!glfwWindowShouldClose(window)) {
             camera->CameraMouseCallback(window);
             camera->CameraKeyCallback(window);
             glfwSetTime(0);
-            move = nextMove(move);
-            status = makeMove(move, status);
+            action = nextAction(action);
+            status = makeAction(action, status);
             drawScene(window);
             glfwPollEvents();
         }

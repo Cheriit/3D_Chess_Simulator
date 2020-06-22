@@ -85,7 +85,10 @@ bool Drawable::MoveDown(){
 bool Drawable::MoveHorizontally(glm::vec3 destination){
     float translation = PIECE_SPEED * glfwGetTime();
     glm::vec3 direction = glm::normalize(destination - Position) * translation;
-    if (glm::length(direction) <= glm::length(destination - Position)) {
+    fprintf(stderr, "Diresction: %f %f %f\n", direction.x, direction.y,direction.z);
+    fprintf(stderr, "Destination: %f %f %f\n", destination.x, destination.y,destination.z);
+    fprintf(stderr, "Position: %f %f %f\n", Position.x, Position.y,Position.z);
+    if (glm::length(destination - Position) <= glm::length(direction)) {
         SetPosition(destination);
         return true;
     } else {
