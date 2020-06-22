@@ -28,6 +28,7 @@ public:
 	Drawable(VertexArray* VAO, ElementBuffer* EBO, ShaderProgram* SP);
 	~Drawable();
 	bool PushTexture(Texture *tex);
+    std::vector<Texture*> GetTextures();
 	void Draw(glm::mat4 M);
 	void SetPosition(glm::vec3 pos);
 	void Move(glm::vec3 pos);

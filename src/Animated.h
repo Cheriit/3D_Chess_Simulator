@@ -14,6 +14,8 @@ public:
     ~Animated();
     void animate();
     bool isAnimationInProgress();
+    void startAnimation();
+    void endAnimation();
 };
 
 #endif

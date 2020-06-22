@@ -20,3 +20,11 @@ void Animated::animate(){
 bool Animated::isAnimationInProgress(){
     return is_animation_in_progress;
 }
+
+void Animated::startAnimation(){
+    is_animation_in_progress = true;
+}
+
+void Animated::endAnimation(){
+    is_animation_in_progress = false;
+}
