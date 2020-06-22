@@ -276,8 +276,7 @@ int promotion(std::vector<int> action, int status) {
         piece->endAnimation();
         return 0;
     }
-
-
+    
     if (piece->GetPosition().y > 2) {
         processMesh(Loader.LoadedMeshes[action[3]]);
         pieces[action[1]][action[2]] = new Animated(piece->GetPosition(), piece->GetRotation(), piece->isWhite(),
