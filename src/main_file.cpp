@@ -107,7 +107,7 @@ void initOpenGLProgram(GLFWwindow *window) {
     glfwSetWindowSizeCallback(window, windowResizeCallback);
     glEnable(GL_MULTISAMPLE);
 
-    camera = new Camera(glm::vec3(-0.65, 0.2, 0), glm::vec3(1.8, 0, -1), glm::vec3(1, 0, 0));
+    camera = new Camera(glm::vec3(-0.7, 0.18, 0), glm::vec3(1.8, 0, -1), glm::vec3(1, 0, 0));
     sp = new ShaderProgram("./res/shaders/v_shader.glsl", NULL, "./res/shaders/f_shader.glsl");
 
 
@@ -492,7 +492,7 @@ int main(void) {
         std::vector<int> action(9, -1);
         float angle = 0;
         int status = 0;
-        glfwSetCursorPos(window, 0, 0);
+        glfwSetCursorPos(window, 960, 0);
         while (!glfwWindowShouldClose(window)) {
             camera->CameraMouseCallback(window);
             camera->CameraKeyCallback(window);
