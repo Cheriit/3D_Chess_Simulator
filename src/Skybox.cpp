@@ -48,6 +48,9 @@ void Skybox::GenerateTexture()
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, Tex);
 }
 
 void Skybox::GenerateVAO()
@@ -73,4 +76,11 @@ void Skybox::Draw(glm::mat4 V, glm::mat4 P)
 
     glDrawArrays(GL_TRIANGLES, 0, 36);
     glDepthFunc(GL_LESS);
+}
+
+void Skybox::BindTexture(ShaderProgram *SP)
+{
+    glUniform1i(SP->u("skyboxTex"), 0);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, Tex);
 }

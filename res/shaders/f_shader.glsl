@@ -2,7 +2,7 @@
 
 uniform sampler2D textureMap0;
 uniform sampler2D textureMap1;
-//uniform samplerCube skybox;
+uniform samplerCube skyboxTex;
 
 
 out vec4 pixelColor;
@@ -12,12 +12,13 @@ in vec4 viewerVector;
 in vec4 normalVector;
 in vec2 iTexCoord0;
 
-//vec4 skyboxColors() {
-//  vec4 normalizedViewerVector = normalize(viewerVector);
-//  vec4 normalizedNormalVector = normalize(normalVector);
-//	vec3 R = reflect(-normalizedViewerVector, normalize(normalizedNormalVector));
-//	return vec4(texture(skybox, R).rgb, 0);
-//}
+vec4 skyboxColors() {
+    vec4 normalizedViewerVector = normalize(viewerVector);
+    vec4 normalizedNormalVector = normalize(normalVector);
+    vec3 R = reflect(-normalizedViewerVector.xyz, normalize(normalizedNormalVector).xyz);
+    return vec4(texture(skyboxTex, R).rgb, 0);
+}
+
 vec4 color(vec4 lightVector){
     vec4 normalizedLightVector = normalize(lightVector);
     vec4 normalizedViewerVector = normalize(viewerVector);
@@ -38,7 +39,7 @@ vec4 color(vec4 lightVector){
 }
 
 void main(void) {
-    pixelColor = vec4(0, 0, 0, 1);// +skyboxColors();
+    pixelColor = mix(vec4(0, 0, 0, 1), skyboxColors(), 0.6);
     for (int i = 0; i< 5; i++){
         pixelColor += color(lightVector[i]);
     }

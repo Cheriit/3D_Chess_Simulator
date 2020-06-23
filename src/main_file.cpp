@@ -424,7 +424,7 @@ void drawScene(GLFWwindow *window, float angle) {
     lightM = glm::rotate(lightM, angle, glm::vec3(0.0f, 1.0f, 0.0f));
     glm::vec4 lightPoint = lightM * glm::vec4(1.0f, 0.2f, 0.0f, 1.0f);
     glUniform4f(sp->u("lightSource"), lightPoint.x, lightPoint.y, lightPoint.z, 1);
-
+    skybox->BindTexture(sp);
 
     for (int i = 0; i < CaptureWhitePieces.size(); i++) {
         CaptureWhitePieces[i]->Draw(M);

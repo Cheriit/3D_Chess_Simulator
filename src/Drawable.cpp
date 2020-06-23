@@ -44,13 +44,13 @@ void Drawable::Draw(glm::mat4 M) {
     VAO->Bind();
     EBO->Bind();
     for (int i = 0; i < Tex.size(); i++) {
-        Tex[i]->Bind(SP->u(Tex[i]->getUniformName()), i, GL_TEXTURE0 + i);
+        Tex[i]->Bind(SP->u(Tex[i]->getUniformName()), i+1, GL_TEXTURE1 + i);
     }
     glDrawElements(GL_TRIANGLES, EBO->getCount(), GL_UNSIGNED_INT, nullptr);
     VAO->Unbind();
     EBO->Unbind();
     for (int i = 0; i < Tex.size(); i++) {
-        Tex[i]->Bind(SP->u(Tex[i]->getUniformName()), i, GL_TEXTURE0 + i);
+        Tex[i]->Bind(SP->u(Tex[i]->getUniformName()), i+1, GL_TEXTURE1 + i);
     }
 }
 
