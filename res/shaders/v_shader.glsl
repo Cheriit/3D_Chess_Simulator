@@ -27,10 +27,10 @@ void main(void) {
     vec4 vertex4 = vec4(vertex, 1.0);
     vec4 normal4 = vec4(normal, 1.0);
     lightVector[0] = normalize(V * lightSource - V*M*vertex4);//wektor do światła w przestrzeni oka
-    lightVector[1] = normalize(V * vec4(1, 0.5, 1, 1) - V*M*vertex4);//wektor do światła w przestrzeni oka
-    lightVector[2] = normalize(V * vec4(1, 0.5, -1, 1) - V*M*vertex4);//wektor do światła w przestrzeni oka
-    lightVector[3] = normalize(V * vec4(-1, 0.5, 1, 1) - V*M*vertex4);//wektor do światła w przestrzeni oka
-    lightVector[4] = normalize(V * vec4(-1, 0.5, -1, 1) - V*M*vertex4);//wektor do światła w przestrzeni oka
+    lightVector[1] = normalize(V * vec4(1, 0.35, 0, 1) - V*M*vertex4);//wektor do światła w przestrzeni oka
+    lightVector[2] = normalize(V * vec4(-1, 0.35, 0, 1) - V*M*vertex4);//wektor do światła w przestrzeni oka
+    lightVector[3] = normalize(V * vec4(0, 0.35, 1, 1) - V*M*vertex4);//wektor do światła w przestrzeni oka
+    lightVector[4] = normalize(V * vec4(0, 0.35, -1, 1) - V*M*vertex4);//wektor do światła w przestrzeni oka
     viewerVector = normalize(vec4(0, 0, 0, 1) - V * M * vertex4);//wektor do obserwatora w przestrzeni oka
     normalVector = normalize(V * M * normal4);//wektor normalny w przestrzeni oka
 

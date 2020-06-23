@@ -12,7 +12,6 @@
 #include "vendor/glm/gtc/type_ptr.hpp"
 #include "vendor/glm/gtc/matrix_transform.hpp"
 
-// TODO add M matrix and add moving
 
 class Drawable
 {
@@ -24,6 +23,8 @@ protected:
 	std::vector<Texture*> Tex;
 	glm::vec3 Position;
 	glm::vec3 Rotation;
+    glm::vec3 Scale;
+
 public:
 	Drawable(VertexArray* VAO, ElementBuffer* EBO, ShaderProgram* SP);
 	~Drawable();
@@ -39,5 +40,7 @@ public:
 	void Rotate(glm::vec3 rot);
 	void SetRotation(glm::vec3 rot);
 	glm::vec3 GetRotation();
+    void SetScale(glm::vec3 sc);
+    glm::vec3 GetScale();
 };
 #endif

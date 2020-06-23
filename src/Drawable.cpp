@@ -12,6 +12,7 @@ Drawable::Drawable(VertexArray *VAO, ElementBuffer *EBO, ShaderProgram *SP)
         : VAO(VAO), EBO(EBO), SP(SP) {
     Position = glm::vec3(0, 0, 0);
     Rotation = glm::vec3(0, 0, 0);
+    Scale = glm::vec3(1, 1, 1);
 }
 
 Drawable::~Drawable() {
@@ -37,6 +38,7 @@ void Drawable::Draw(glm::mat4 M) {
     M = glm::rotate(M, Rotation.x, glm::vec3(1, 0, 0));
     M = glm::rotate(M, Rotation.y, glm::vec3(0, 1, 0));
     M = glm::rotate(M, Rotation.z, glm::vec3(0, 0, 1));
+    M = glm::scale(M, Scale);
     glUniformMatrix4fv(SP->u("M"), 1, false, glm::value_ptr(M));
 
     VAO->Bind();
@@ -60,7 +62,7 @@ void Drawable::Move(glm::vec3 pos) {
     Position = Position + pos;
 }
 
-bool Drawable::MoveUp(float height){
+bool Drawable::MoveUp(float height) {
     float translation = PIECE_SPEED * glfwGetTime();
     if (Position.y >= height) {
         SetPosition(glm::vec3(Position.x, height, Position.z));
@@ -71,7 +73,7 @@ bool Drawable::MoveUp(float height){
     }
 }
 
-bool Drawable::MoveDown(){
+bool Drawable::MoveDown() {
     float translation = PIECE_SPEED * glfwGetTime();
     if (Position.y <= 0.0) {
         SetPosition(glm::vec3(Position.x, 0.0f, Position.z));
@@ -82,7 +84,7 @@ bool Drawable::MoveDown(){
     }
 }
 
-bool Drawable::MoveHorizontally(glm::vec3 destination){
+bool Drawable::MoveHorizontally(glm::vec3 destination) {
     float translation = PIECE_SPEED * glfwGetTime();
     glm::vec3 direction = glm::normalize(destination - Position) * translation;
     if (glm::length(destination - Position) <= glm::length(direction)) {
@@ -108,4 +110,12 @@ void Drawable::SetRotation(glm::vec3 rot) {
 
 glm::vec3 Drawable::GetRotation() {
     return Rotation;
+}
+
+void Drawable::SetScale(glm::vec3 sc) {
+    Scale = sc;
+}
+
+glm::vec3 Drawable::GetScale() {
+    return Scale;
 }
