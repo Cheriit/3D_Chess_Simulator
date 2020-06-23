@@ -28,7 +28,7 @@ vec4 color(vec4 lightVector){
     vec4 reflectedVector = reflect(-normalizedLightVector, normalizedNormalVector);
 
     //Parametry powierzchni
-    float ambient = clamp(texture(textureMap0, iTexCoord0).r + 0.3f, 0, 1);
+    float ambient = clamp(texture(textureMap0, iTexCoord0).r + 0.2f, 0, 1);
     vec4 kd = texture(textureMap1, iTexCoord0) * ambient;
     vec4 ks = vec4(1, 1, 1, 1);
 
@@ -39,9 +39,10 @@ vec4 color(vec4 lightVector){
 }
 
 void main(void) {
-    pixelColor = mix(vec4(0, 0, 0, 1), skyboxColors(), 0.6);
+    pixelColor = vec4(0, 0, 0, 1);
     for (int i = 0; i< 5; i++){
         pixelColor += color(lightVector[i]);
     }
-    // pixelColor = clamp(pixelColor,0,1);
+    pixelColor = clamp(pixelColor, vec4(0, 0, 0, 0), vec4(1, 1, 1, 1));
+    pixelColor = mix(pixelColor, skyboxColors(), 0.5);
 }

@@ -265,7 +265,7 @@ glm::vec3 destinationCaptured(bool is_white) {
     if (is_white) {
         int x = CaptureWhitePieces.size() / 8;
         int y = CaptureWhitePieces.size() % 8;
-        return glm::vec3(CAPTURED_WHITE + x * FIELD_SIZE, 2 * HEIGHT, -BOARD_CORNER + y * FIELD_SIZE);
+        return glm::vec3(CAPTURED_WHITE - x * FIELD_SIZE, 2 * HEIGHT, -BOARD_CORNER + y * FIELD_SIZE);
     } else {
         int x = CaptureBlackPieces.size() / 8;
         int y = CaptureBlackPieces.size() % 8;
@@ -289,7 +289,7 @@ int move(std::vector<int> action, int status) {
 int capture(std::vector<int> action, int status, bool enPassant) {
     Animated *piece = pieces[action[1]][action[2]];
     piece->startAnimation();
-    glm::vec3 pieceDest = destination(action[3], action[4], 0);
+    glm::vec3 pieceDest = destination(action[3], action[4], HEIGHT);
 
     Animated *capturedPiece;
     glm::vec3 capturedDest;
@@ -304,10 +304,10 @@ int capture(std::vector<int> action, int status, bool enPassant) {
     }
 
     if (firstPieceStatus) {
-        firstPieceStatus = piece->Move(pieceDest, firstPieceStatus, 0);
+        firstPieceStatus = piece->Move(pieceDest, firstPieceStatus, HEIGHT);
     }
     if (secondPieceStatus) {
-        secondPieceStatus = capturedPiece->Move(capturedDest, secondPieceStatus, HEIGHT);
+        secondPieceStatus = capturedPiece->Move(capturedDest, secondPieceStatus, 2*HEIGHT);
     }
     if (firstPieceStatus == 0 && secondPieceStatus == 0) {
         if (capturedPiece->isWhite()) {
