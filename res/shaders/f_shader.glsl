@@ -27,7 +27,7 @@ vec4 color(vec4 lightVector){
     vec4 reflectedVector = reflect(-normalizedLightVector, normalizedNormalVector);
 
     //Parametry powierzchni
-    float ambient = texture(textureMap0, iTexCoord0).r + 0.3f;
+    float ambient = clamp(texture(textureMap0, iTexCoord0).r + 0.3f, 0, 1);
     vec4 kd = texture(textureMap1, iTexCoord0) * ambient;
     vec4 ks = vec4(1, 1, 1, 1);
 
