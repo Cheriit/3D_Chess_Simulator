@@ -3,7 +3,7 @@
 #include "../constants.h"
 #include <iostream>
 Camera::Camera(glm::vec3 Position, glm::vec3 Face, glm::vec3 Right)
-	: Position(Position), Face(Face), Right(Right)
+	: Position(Position), Face(glm::normalize(Face)), Right(Right)
 {
     Yaw = 0;
     Pitch = 0;
@@ -27,19 +27,25 @@ void Camera::CameraKeyCallback(GLFWwindow* window)
     float translate = CAMERA_KEY_SPEED * glfwGetTime();
 
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        Position += Face * translate;
+        if(glm::distance(glm::vec3(0,0,0), Position + Face * translate) <= MAX_CAMERA_DISTANCE)
+            Position += Face * translate;
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        Position -= Face * translate;
+        if (glm::distance(glm::vec3(0, 0, 0), Position - Face * translate) <= MAX_CAMERA_DISTANCE)
+            Position -= Face * translate;
 
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        Position += glm::normalize(glm::cross(glm::vec3(0, 1, 0), Face)) * translate;
+        if (glm::distance(glm::vec3(0, 0, 0), Position + glm::normalize(glm::cross(glm::vec3(0, 1, 0), Face)) * translate) <= MAX_CAMERA_DISTANCE)
+            Position += glm::normalize(glm::cross(glm::vec3(0, 1, 0), Face)) * translate;
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        Position -= glm::normalize(glm::cross(glm::vec3(0, 1, 0), Face)) * translate;
+        if (glm::distance(glm::vec3(0, 0, 0), Position - glm::normalize(glm::cross(glm::vec3(0, 1, 0), Face)) * translate) <= MAX_CAMERA_DISTANCE)
+            Position -= glm::normalize(glm::cross(glm::vec3(0, 1, 0), Face)) * translate;
 
     if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
-        Position += glm::vec3(0, translate, 0);
+        if (glm::distance(glm::vec3(0, 0, 0), Position + glm::vec3(0, translate, 0)) <= MAX_CAMERA_DISTANCE)
+            Position += glm::vec3(0, translate, 0);
     if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
-        Position -= glm::vec3(0, translate, 0);
+        if (glm::distance(glm::vec3(0, 0, 0), Position - glm::vec3(0, translate, 0)) <= MAX_CAMERA_DISTANCE)
+            Position -= glm::vec3(0, translate, 0);
     }
 }
 

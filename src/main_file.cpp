@@ -107,7 +107,7 @@ void initOpenGLProgram(GLFWwindow *window) {
     glfwSetWindowSizeCallback(window, windowResizeCallback);
     glEnable(GL_MULTISAMPLE);
 
-    camera = new Camera(glm::vec3(-0.65, 0.2, 0), glm::vec3(1, 0, 0), glm::vec3(1, 0, 0));
+    camera = new Camera(glm::vec3(-0.65, 0.2, 0), glm::vec3(1.8, 0, -1), glm::vec3(1, 0, 0));
     sp = new ShaderProgram("./res/shaders/v_shader.glsl", NULL, "./res/shaders/f_shader.glsl");
 
 
@@ -223,26 +223,36 @@ std::vector<int> nextAction(std::vector<int> action) {
 
     std::string data;
     getline(inputStream, data);
-    action[0] = data[0];
-    action[1] = data[2] - 'A';
-    action[2] = data[3] - '1';
-    if (action[0] == 'M') { // M(Move) Piece Destination
-        action[3] = data[5] - 'A';
-        action[4] = data[6] - '1';
-    } else if (action[0] == 'P') { //P(Promotion) Piece Mesh
-        action[3] = data[5] - '0';
-    } else if (action[0] == 'C') { //C (Castling) King Destination Rook Destination
-        action[3] = data[5] - 'A';
-        action[4] = data[6] - '1';
-        action[5] = data[8] - 'A';
-        action[6] = data[9] - '1';
-        action[7] = data[11] - 'A';
-        action[8] = data[12] - '1';
-    } else if (action[0] == 'E') { // E(En passant) Piece Destination Piece
-        action[3] = data[5] - 'A';
-        action[4] = data[6] - '1';
-        action[5] = data[8] - 'A';
-        action[6] = data[9] - '1';
+    if (data.length() > 0)
+    {
+        action[0] = data[0];
+        action[1] = data[2] - 'A';
+        action[2] = data[3] - '1';
+        if (action[0] == 'M') { // M(Move) Piece Destination
+            action[3] = data[5] - 'A';
+            action[4] = data[6] - '1';
+        }
+        else if (action[0] == 'P') { //P(Promotion) Piece Mesh
+            action[3] = data[5] - '0';
+        }
+        else if (action[0] == 'C') { //C (Castling) King Destination Rook Destination
+            action[3] = data[5] - 'A';
+            action[4] = data[6] - '1';
+            action[5] = data[8] - 'A';
+            action[6] = data[9] - '1';
+            action[7] = data[11] - 'A';
+            action[8] = data[12] - '1';
+        }
+        else if (action[0] == 'E') { // E(En passant) Piece Destination Piece
+            action[3] = data[5] - 'A';
+            action[4] = data[6] - '1';
+            action[5] = data[8] - 'A';
+            action[6] = data[9] - '1';
+        }
+    }
+    else
+    {
+        action[0] = 'X';
     }
     return action;
 }
@@ -379,7 +389,7 @@ int castling(std::vector<int> action, int status) {
 }
 
 int makeAction(std::vector<int> action, int status) {
-    int newStatus;
+    int newStatus = 0;
     if (action[0] == 'M') {
         if (pieces[action[3]][action[4]] == nullptr) {
             newStatus = move(action, status);
@@ -482,6 +492,7 @@ int main(void) {
         std::vector<int> action(9, -1);
         float angle = 0;
         int status = 0;
+        glfwSetCursorPos(window, 0, 0);
         while (!glfwWindowShouldClose(window)) {
             camera->CameraMouseCallback(window);
             camera->CameraKeyCallback(window);

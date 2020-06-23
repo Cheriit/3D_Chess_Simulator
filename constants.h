@@ -35,5 +35,6 @@ const float LIGHT_SPEED = 1000.0f;
 const bool WHITE = true;
 const bool BLACK = false;
 const std::string INPUT_FILE= "game.txt";
+const float MAX_CAMERA_DISTANCE = 1.5f;
 
 #endif
