@@ -108,7 +108,7 @@ void initOpenGLProgram(GLFWwindow *window) {
     glEnable(GL_MULTISAMPLE);
 
     camera = new Camera(glm::vec3(0, 0.3, 0), glm::vec3(0, 0, 1), glm::vec3(1, 0, 0));
-    sp = new ShaderProgram("./res/shaders/vertex_shader.glsl", NULL, "./res/shaders/f_simplest.glsl");
+    sp = new ShaderProgram("./res/shaders/v_shader.glsl", NULL, "./res/shaders/f_shader.glsl");
 
 
     if (!Loader.LoadFile("./res/models/PiezasAjedrez.obj")) {
@@ -413,12 +413,9 @@ void drawScene(GLFWwindow *window, float angle) {
 
     glm::mat4 lightM = glm::mat4(1.0f);
     lightM = glm::rotate(lightM, angle, glm::vec3(0.0f, 1.0f, 0.0f));
-    glm::vec4  lightPoint= lightM * glm::vec4(0.5f, 1.0f, 0.0f, 1.0f);
-    glUniform4f(sp->u("lightSource1"), lightPoint.x, lightPoint.y, lightPoint.z, 1);
+    glm::vec4  lightPoint= lightM * glm::vec4(0.5f, 0.5f, 0.0f, 1.0f);
+    glUniform4f(sp->u("lightSource"), lightPoint.x, lightPoint.y, lightPoint.z, 1);
 
-    lightM = glm::rotate(lightM, PI, glm::vec3(0.0f, 1.0f, 0.0f));
-    glm::vec4 lightPoint2= lightM * glm::vec4(0.5f, 0.025f, 0.0f, 1.0f);
-    glUniform4f(sp->u("lightSource2"), lightPoint2.x, lightPoint2.y, lightPoint2.z, 1);
 
     for (int i = 0; i < CaptureWhitePieces.size(); i++) {
         CaptureWhitePieces[i]->Draw(M);
