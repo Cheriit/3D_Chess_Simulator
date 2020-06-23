@@ -31,6 +31,7 @@ const float PIECE_SPEED = 1000.0f;
 const float CAPTURED_WHITE = -0.45f;
 const float CAPTURED_BLACK = 0.45f;
 const float HEIGHT = 0.3;
+const float LIGHT_SPEED = 1000.0f;
 const bool WHITE = true;
 const bool BLACK = false;
 const std::string INPUT_FILE= "game.txt";

@@ -107,8 +107,8 @@ void initOpenGLProgram(GLFWwindow *window) {
     glfwSetWindowSizeCallback(window, windowResizeCallback);
     glEnable(GL_MULTISAMPLE);
 
-    camera = new Camera(glm::vec3(0, 0, 0), glm::vec3(0, 0, 1), glm::vec3(1, 0, 0));
-    sp = new ShaderProgram("./res/shaders/v_simplest.glsl", NULL, "./res/shaders/f_simplest.glsl");
+    camera = new Camera(glm::vec3(0, 0.3, 0), glm::vec3(0, 0, 1), glm::vec3(1, 0, 0));
+    sp = new ShaderProgram("./res/shaders/vertex_shader.glsl", NULL, "./res/shaders/f_simplest.glsl");
 
 
     if (!Loader.LoadFile("./res/models/PiezasAjedrez.obj")) {
@@ -116,24 +116,27 @@ void initOpenGLProgram(GLFWwindow *window) {
         exit(EXIT_FAILURE);
     }
 
-
-    tex0 = new Texture("./res/textures/chess/TableroDiffuse02.png", "textureMap0");
-    tex1 = new Texture("./res/textures/chess/Tableroambient.png", "textureMap1");
-    //tex1 = new Texture("./res/textures/chess/PiezasAjedrezDiffuseMarmol.png", "textureMap0");
-    tex2 = new Texture("./res/textures/chess/PiezasAjedrezDiffuseMarmolBlack.png", "textureMap0");
-
+    tex0 = new Texture("./res/textures/chess/Tableroambient.png", "textureMap0");
+    tex1 = new Texture("./res/textures/chess/TableroDiffuse02.png", "textureMap1");
     processMesh(Loader.LoadedMeshes[0]);
     board = new Drawable(VAO, EBO, sp);
     board->PushTexture(tex0);
+    board->PushTexture(tex1);
+
+    tex0 = new Texture("./res/textures/chess/Ambient.png", "textureMap0");
+    tex1 = new Texture("./res/textures/chess/PiezasAjedrezDiffuseMarmol.png", "textureMap1");
+    tex2 = new Texture("./res/textures/chess/PiezasAjedrezDiffuseMarmolBlack.png", "textureMap1");
 
     // generate bishops
     processMesh(Loader.LoadedMeshes[1]);
     for (int i = 0; i < 2; i++) {
         pieces[2 + 3 * i][0] = new Animated(glm::vec3(-BOARD_CORNER + (2 + 3 * i) * FIELD_SIZE, 0, BOARD_CORNER),
                                             glm::vec3(0, 0, 0), WHITE, VAO, EBO, sp);
+        pieces[2 + 3 * i][0]->PushTexture(tex0);
         pieces[2 + 3 * i][0]->PushTexture(tex1);
         pieces[2 + 3 * i][7] = new Animated(glm::vec3(-BOARD_CORNER + (2 + 3 * i) * FIELD_SIZE, 0, -BOARD_CORNER),
                                             glm::vec3(0, 0, 0), BLACK, VAO, EBO, sp);
+        pieces[2 + 3 * i][7]->PushTexture(tex0);
         pieces[2 + 3 * i][7]->PushTexture(tex2);
     }
 
@@ -142,9 +145,11 @@ void initOpenGLProgram(GLFWwindow *window) {
     for (int i = 0; i < 2; i++) {
         pieces[7 * i][0] = new Animated(glm::vec3(-BOARD_CORNER + 7 * i * FIELD_SIZE, 0, BOARD_CORNER),
                                         glm::vec3(0, 0, 0), WHITE, VAO, EBO, sp);
+        pieces[7 * i][0]->PushTexture(tex0);
         pieces[7 * i][0]->PushTexture(tex1);
         pieces[7 * i][7] = new Animated(glm::vec3(-BOARD_CORNER + 7 * i * FIELD_SIZE, 0, -BOARD_CORNER),
                                         glm::vec3(0, 0, 0), BLACK, VAO, EBO, sp);
+        pieces[7 * i][7]->PushTexture(tex0);
         pieces[7 * i][7]->PushTexture(tex2);
     }
 
@@ -153,9 +158,11 @@ void initOpenGLProgram(GLFWwindow *window) {
     for (int i = 0; i < 2; i++) {
         pieces[1 + 5 * i][0] = new Animated(glm::vec3(-BOARD_CORNER + (1 + 5 * i) * FIELD_SIZE, 0, BOARD_CORNER),
                                             glm::vec3(0, 0, 0), WHITE, VAO, EBO, sp);
+        pieces[1 + 5 * i][0]->PushTexture(tex0);
         pieces[1 + 5 * i][0]->PushTexture(tex1);
         pieces[1 + 5 * i][7] = new Animated(glm::vec3(-BOARD_CORNER + (1 + 5 * i) * FIELD_SIZE, 0, -BOARD_CORNER),
                                             glm::vec3(0, 0, 0), BLACK, VAO, EBO, sp);
+        pieces[1 + 5 * i][7]->PushTexture(tex0);
         pieces[1 + 5 * i][7]->PushTexture(tex2);
     }
 
@@ -164,9 +171,11 @@ void initOpenGLProgram(GLFWwindow *window) {
 
     pieces[3][0] = new Animated(glm::vec3(-BOARD_CORNER + 3 * FIELD_SIZE, 0, BOARD_CORNER),
                                 glm::vec3(0, 0, 0), WHITE, VAO, EBO, sp);
+    pieces[3][0]->PushTexture(tex0);
     pieces[3][0]->PushTexture(tex1);
     pieces[3][7] = new Animated(glm::vec3(-BOARD_CORNER + 3 * FIELD_SIZE, 0, -BOARD_CORNER),
                                 glm::vec3(0, 0, 0), BLACK, VAO, EBO, sp);
+    pieces[3][7]->PushTexture(tex0);
     pieces[3][7]->PushTexture(tex2);
 
     //generate kings
@@ -174,9 +183,11 @@ void initOpenGLProgram(GLFWwindow *window) {
 
     pieces[4][0] = new Animated(glm::vec3(-BOARD_CORNER + 4 * FIELD_SIZE, 0, BOARD_CORNER),
                                 glm::vec3(0, 0, 0), WHITE, VAO, EBO, sp);
+    pieces[4][0]->PushTexture(tex0);
     pieces[4][0]->PushTexture(tex1);
     pieces[4][7] = new Animated(glm::vec3(-BOARD_CORNER + 4 * FIELD_SIZE, 0, -BOARD_CORNER),
                                 glm::vec3(0, 0, 0), BLACK, VAO, EBO, sp);
+    pieces[4][7]->PushTexture(tex0);
     pieces[4][7]->PushTexture(tex2);
 
     // generate pawns
@@ -184,9 +195,11 @@ void initOpenGLProgram(GLFWwindow *window) {
     for (int i = 0; i < 8; i++) {
         pieces[i][1] = new Animated(glm::vec3(-BOARD_CORNER + FIELD_SIZE * i, 0, BOARD_CORNER - FIELD_SIZE),
                                     glm::vec3(0, 0, 0), WHITE, VAO, EBO, sp);
+        pieces[i][1]->PushTexture(tex0);
         pieces[i][1]->PushTexture(tex1);
         pieces[i][6] = new Animated(glm::vec3(-BOARD_CORNER + FIELD_SIZE * i, 0, -BOARD_CORNER + FIELD_SIZE),
                                     glm::vec3(0, 0, 0), BLACK, VAO, EBO, sp);
+        pieces[i][6]->PushTexture(tex0);
         pieces[i][6]->PushTexture(tex2);
     }
 
@@ -310,7 +323,6 @@ int capture(std::vector<int> action, int status, bool enPassant) {
     return 1;
 }
 
-
 int promotion(std::vector<int> action, int status) {
     Animated *piece = pieces[action[1]][action[2]];
     piece->startAnimation();
@@ -338,7 +350,6 @@ int promotion(std::vector<int> action, int status) {
         return 1;
     }
 }
-
 
 int castling(std::vector<int> action, int status) {
     Animated *king = pieces[action[1]][action[2]];
@@ -385,7 +396,7 @@ int makeAction(std::vector<int> action, int status) {
     return newStatus;
 }
 
-void drawScene(GLFWwindow *window) {
+void drawScene(GLFWwindow *window, float angle) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glm::mat4 V = camera->GetCameraMatrix();
@@ -394,9 +405,20 @@ void drawScene(GLFWwindow *window) {
 
     glm::mat4 M = glm::mat4(1.0f);
 
+
+
     sp->use();
     glUniformMatrix4fv(sp->u("P"), 1, false, glm::value_ptr(P));
     glUniformMatrix4fv(sp->u("V"), 1, false, glm::value_ptr(V));
+
+    glm::mat4 lightM = glm::mat4(1.0f);
+    lightM = glm::rotate(lightM, angle, glm::vec3(0.0f, 1.0f, 0.0f));
+    glm::vec4  lightPoint= lightM * glm::vec4(0.5f, 1.0f, 0.0f, 1.0f);
+    glUniform4f(sp->u("lightSource1"), lightPoint.x, lightPoint.y, lightPoint.z, 1);
+
+    lightM = glm::rotate(lightM, PI, glm::vec3(0.0f, 1.0f, 0.0f));
+    glm::vec4 lightPoint2= lightM * glm::vec4(0.5f, 0.025f, 0.0f, 1.0f);
+    glUniform4f(sp->u("lightSource2"), lightPoint2.x, lightPoint2.y, lightPoint2.z, 1);
 
     for (int i = 0; i < CaptureWhitePieces.size(); i++) {
         CaptureWhitePieces[i]->Draw(M);
@@ -462,6 +484,7 @@ int main(void) {
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
         glfwSetTime(0);
         std::vector<int> action(9, -1);
+        float angle = 0;
         int status = 0;
         while (!glfwWindowShouldClose(window)) {
             camera->CameraMouseCallback(window);
@@ -469,7 +492,8 @@ int main(void) {
             glfwSetTime(0);
             action = nextAction(action);
             status = makeAction(action, status);
-            drawScene(window);
+            angle += LIGHT_SPEED * glfwGetTime();
+            drawScene(window, angle);
             glfwPollEvents();
         }
 
