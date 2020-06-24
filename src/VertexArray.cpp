@@ -1,5 +1,4 @@
 #include "VertexArray.h"
-#include "Drawer.h"
 
 VertexArray::VertexArray()
 {

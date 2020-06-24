@@ -2,7 +2,6 @@
 #ifndef DRAWABLE_H
 #define DRAWABLE_H
 
-#include "Drawer.h"
 #include "VertexArray.h"
 #include "VertexBuffer.h"
 #include "ElementBuffer.h"
